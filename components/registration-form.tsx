@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { ChevronDown, Loader2, Star } from "lucide-react"
+import { useState } from "react";
+import { ChevronDown, Loader2, Star } from "lucide-react";
 
 interface FormData {
-  fullName: string
-  whatsappNumber: string
-  inConnectGroup: string
-  connectGroup: string
+  fullName: string;
+  whatsappNumber: string;
+  inConnectGroup: string;
+  connectGroup: string;
 }
 
 interface RegistrationFormProps {
-  onSubmit: (data: FormData) => void
+  onSubmit: (data: FormData) => void;
 }
 
 export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
@@ -22,50 +22,60 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
     whatsappNumber: "",
     inConnectGroup: "",
     connectGroup: "",
-  })
+  });
 
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const cgOptions = ["CG 01 - North", "CG 02 - South", "CG 03 - East", "CG 04 - West", "CG 05 - Central"]
+  const cgOptions = [
+    "CG 07 - Ailicia Wibiksono",
+    "CG 11 - Kimberly Joseph Wirawan",
+    "CG 52 - Rachel Pascalie",
+    "CG 54 - Finnegan Evan Kesuma",
+    "CG 78 - Nathanael Wilson",
+    "CG 98 - Rick Joyner Supit",
+    "CG 110 - Javier",
+  ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
 
     if (name === "inConnectGroup" && value === "No") {
       setFormData((prev) => ({
         ...prev,
         connectGroup: "",
-      }))
+      }));
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
     if (!formData.fullName.trim()) {
-      setError("Please enter your full name")
-      return
+      setError("Please enter your full name");
+      return;
     }
     if (!formData.whatsappNumber.trim()) {
-      setError("Please enter your WhatsApp number")
-      return
+      setError("Please enter your WhatsApp number");
+      return;
     }
     if (!formData.inConnectGroup) {
-      setError("Please select whether you are in a Connect Group")
-      return
+      setError("Please select whether you are in a Connect Group");
+      return;
     }
     if (formData.inConnectGroup === "Yes" && !formData.connectGroup) {
-      setError("Please select your Connect Group")
-      return
+      setError("Please select your Connect Group");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       const response = await fetch("/api/register", {
@@ -77,24 +87,29 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
           fullName: formData.fullName,
           whatsappNumber: formData.whatsappNumber,
           inConnectGroup: formData.inConnectGroup,
-          connectGroup: formData.inConnectGroup === "Yes" ? formData.connectGroup : null,
+          connectGroup:
+            formData.inConnectGroup === "Yes" ? formData.connectGroup : null,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Registration failed")
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Registration failed");
       }
 
-      console.log("[v0] Registration successful")
-      setLoading(false)
-      onSubmit(formData)
+      console.log("[v0] Registration successful");
+      setLoading(false);
+      onSubmit(formData);
     } catch (err) {
-      console.error("[v0] Registration error:", err)
-      setError(err instanceof Error ? err.message : "Failed to register. Please try again.")
-      setLoading(false)
+      console.error("[v0] Registration error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to register. Please try again."
+      );
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-2xl">
@@ -123,15 +138,22 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
           <div className="px-8 py-12 md:px-12 md:py-16 space-y-8">
             {/* Header */}
             <div className="text-center space-y-3">
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 text-balance">Join the Joy</h2>
-              <p className="text-sm text-slate-500">Register below to reserve your seat</p>
+              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 text-balance">
+                Join the Joy
+              </h2>
+              <p className="text-sm text-slate-500">
+                Register below to reserve your seat
+              </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Full Name */}
               <div>
-                <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="fullName"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Full Name
                 </label>
                 <input
@@ -147,7 +169,10 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
 
               {/* WhatsApp Number */}
               <div>
-                <label htmlFor="whatsappNumber" className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="whatsappNumber"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   WhatsApp Number
                 </label>
                 <input
@@ -163,7 +188,10 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
 
               {/* Connect Group Question */}
               <div>
-                <label htmlFor="inConnectGroup" className="block text-sm font-semibold text-slate-700 mb-2">
+                <label
+                  htmlFor="inConnectGroup"
+                  className="block text-sm font-semibold text-slate-700 mb-2"
+                >
                   Are you in a Connect Group (CG)?
                 </label>
                 <div className="relative">
@@ -188,7 +216,10 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
               {/* Conditional CG Selection */}
               {formData.inConnectGroup === "Yes" && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label htmlFor="connectGroup" className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label
+                    htmlFor="connectGroup"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
                     Select your CG
                   </label>
                   <div className="relative">
@@ -244,5 +275,5 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
