@@ -1,33 +1,34 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import RegistrationForm from "@/components/registration-form"
-import DigitalInvitation from "@/components/digital-invitation"
-import TreeFrame from "@/components/tree-frame"
+import { useState } from "react";
+import RegistrationForm from "@/components/registration-form";
+import HeroSection from "@/components/hero-section";
+import DigitalInvitation from "@/components/digital-invitation";
+import TreeFrame from "@/components/tree-frame";
 
 export default function Home() {
-  const [formSubmitted, setFormSubmitted] = useState(false)
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const [registrationData, setRegistrationData] = useState<{
-    fullName: string
-    whatsappNumber: string
-    inConnectGroup: string
-    connectGroup: string
-  } | null>(null)
+    fullName: string;
+    whatsappNumber: string;
+    inConnectGroup: string;
+    connectGroup: string;
+  } | null>(null);
 
   const handleFormSubmit = (data: {
-    fullName: string
-    whatsappNumber: string
-    inConnectGroup: string
-    connectGroup: string
+    fullName: string;
+    whatsappNumber: string;
+    inConnectGroup: string;
+    connectGroup: string;
   }) => {
-    setRegistrationData(data)
-    setFormSubmitted(true)
-  }
+    setRegistrationData(data);
+    setFormSubmitted(true);
+  };
 
   const handleClose = () => {
-    setFormSubmitted(false)
-    setRegistrationData(null)
-  }
+    setFormSubmitted(false);
+    setRegistrationData(null);
+  };
 
   return (
     <main>
@@ -44,26 +45,8 @@ export default function Home() {
 
           {/* Content wrapper */}
           <div className="relative z-10 flex flex-col min-h-screen">
-            {/* Hero Section */}
-            <section className="flex flex-col items-center justify-center px-4 py-8 md:py-12 min-h-screen md:min-h-auto md:flex-shrink-0 md:h-screen">
-              <div className="text-center space-y-6 animate-in">
-                <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg text-balance">
-                  I'll be Home for Christmas
-                </h1>
-                <p className="text-xl md:text-2xl text-amber-100 font-semibold">
-                  December 25, 2024 • 6:00 PM - 9:00 PM
-                </p>
-                <p className="text-lg text-amber-50 font-light">Celebrate the season with us</p>
-                <button
-                  onClick={() => {
-                    document.getElementById("form-section")?.scrollIntoView({ behavior: "smooth" })
-                  }}
-                  className="mt-8 px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all hover:shadow-lg active:scale-95"
-                >
-                  Register Now
-                </button>
-              </div>
-            </section>
+            {/* Hero Section (from component with snowfall) */}
+            <HeroSection />
 
             {/* Form Section */}
             <section
@@ -78,5 +61,5 @@ export default function Home() {
         <DigitalInvitation data={registrationData} onClose={handleClose} />
       )}
     </main>
-  )
+  );
 }

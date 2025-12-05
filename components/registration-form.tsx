@@ -230,7 +230,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                       onChange={handleInputChange}
                       className="w-full appearance-none rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 py-3 text-slate-900 transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                     >
-                      <option value="">Select your group</option>
+                      <option value="">Select your connect group</option>
                       {cgOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
