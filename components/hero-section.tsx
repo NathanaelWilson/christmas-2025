@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Trees } from "lucide-react";
+import { Star } from "lucide-react";
 
 export default function HeroSection() {
   const scrollToForm = () => {
@@ -9,137 +9,86 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative h-screen overflow-hidden bg-gradient-to-b from-red-700 to-red-500">
+    // 1. Parent container relative agar child absolute patuh pada area ini
+    // h-screen w-full
+    <section className="relative h-screen w-full overflow-hidden bg-red-800">
+      
+      {/* --- STYLE SALJU (TETAP SAMA) --- */}
       <style>{`
-        /* Gerakan jatuh + goyangan kiri-kanan seperti tertiup angin */
         @keyframes fall-wind {
-          0% {
-            transform: translateY(0vh) translateX(0);
-            opacity: 1;
-          }
-          25% {
-            transform: translateY(25vh) translateX(-15px);
-          }
-          50% {
-            transform: translateY(50vh) translateX(5px);
-          }
-          75% {
-            transform: translateY(75vh) translateX(-10px);
-            opacity: 0.5;
-          }
-          100% {
-            transform: translateY(100vh) translateX(-30px);
-            opacity: 0.0;
-          }
+          0% { transform: translateY(0vh) translateX(0); opacity: 1; }
+          25% { transform: translateY(25vh) translateX(-15px); }
+          50% { transform: translateY(50vh) translateX(5px); }
+          75% { transform: translateY(75vh) translateX(-10px); opacity: 0.5; }
+          100% { transform: translateY(100vh) translateX(-30px); opacity: 0.0; }
         }
-
-        .snowfall {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 40;
-          overflow: hidden;
-          pointer-events: none;
-        }
-
-        .snowflake {
-          position: absolute;
-          top: -10vh;
-          width: 12px;
-          height: 12px;
-          background: #ffffff;
-          border-radius: 50%;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-
-          animation: fall-wind linear infinite;
-          will-change: transform, opacity;
-        }
-
-        /* RANDOM EFFECTS: tiap snowflake beda ukuran, speed, delay, dan goyangan */
-        .snowflake:nth-child(1)  { left: 10%;  animation-duration: 13s; animation-delay: 0s; }
-        .snowflake:nth-child(2)  { left: 20%;  animation-duration: 11s;  animation-delay: 3.5s; width: 8px; height: 8px; }
-        .snowflake:nth-child(3)  { left: 35%;  animation-duration: 15s; animation-delay: 2.2s; width: 14px; height: 14px; }
-        .snowflake:nth-child(4)  { left: 45%;  animation-duration: 12s; animation-delay: 0.7s; width: 9px; height: 9px; }
-        .snowflake:nth-child(5)  { left: 55%;  animation-duration: 14s; animation-delay: 8.4s; width: 13px; height: 13px; }
-        .snowflake:nth-child(6)  { left: 65%;  animation-duration: 10s;  animation-delay: 0.4s; width: 7px; height: 7px; }
-        .snowflake:nth-child(7)  { left: 75%;  animation-duration: 16s; animation-delay: 3.1s; width: 11px; height: 11px; }
-        .snowflake:nth-child(8)  { left: 85%;  animation-duration: 12.5s; animation-delay: 1.1s; width: 9px; height: 9px; }
-        .snowflake:nth-child(9)  { left: 93%;  animation-duration: 14.5s; animation-delay: 4.6s; width: 12px; height: 12px; }
-        .snowflake:nth-child(10) { left: 5%;   animation-duration: 11.8s;  animation-delay: 6.7s; width: 7px; height: 7px; }
+        .snowfall { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; }
+        .snowflake { position: absolute; top: -10vh; width: 10px; height: 10px; background: white; border-radius: 50%; animation: fall-wind linear infinite; }
+        .snowflake:nth-child(1) { left: 10%; animation-duration: 13s; }
+        .snowflake:nth-child(2) { left: 20%; animation-duration: 11s; animation-delay: 2s; width: 6px; height: 6px; }
+        .snowflake:nth-child(3) { left: 35%; animation-duration: 15s; animation-delay: 4s; }
+        .snowflake:nth-child(4) { left: 50%; animation-duration: 10s; animation-delay: 1s; width: 8px; height: 8px; }
+        .snowflake:nth-child(5) { left: 70%; animation-duration: 12s; animation-delay: 3s; }
+        .snowflake:nth-child(6) { left: 85%; animation-duration: 14s; animation-delay: 5s; width: 7px; height: 7px; }
+        .snowflake:nth-child(7) { left: 5%; animation-duration: 16s; animation-delay: 1s; width: 9px; height: 9px; }
+        .snowflake:nth-child(8) { left: 45%; animation-duration: 9s; animation-delay: 0.5s; width: 5px; height: 5px; }
+        .snowflake:nth-child(9) { left: 60%; animation-duration: 12s; animation-delay: 2.5s; }
+        .snowflake:nth-child(10) { left: 95%; animation-duration: 15s; animation-delay: 4s; width: 8px; height: 8px; }
       `}</style>
 
-      {/* Snowfall Container - Fixed Background */}
+      {/* --- LAYER 1: BACKGROUND IMAGE UTAMA (LOGO) --- */}
+      {/* Absolute inset-0 agar gambar memenuhi layar. Gunakan flex/grid untuk centering. */}
+      {/* z-0 agar di lapisan paling bawah */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center">
+        <img 
+          src="/Logo.png" 
+          alt="Christmas Background Logo" 
+          className="w-full h-full object-contain object-center" 
+        />
+        {/* Opsional: Overlay gelap sedikit agar tulisan/button lebih pop-up */}
+        {/* <div className="absolute inset-0 bg-black/10" /> */}
+      </div>
+
+      {/* --- LAYER 2: EFEK SALJU --- */}
       <div className="snowfall">
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
-        <div className="snowflake">
-          <div className="flake" />
-        </div>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="snowflake" />
+        ))}
       </div>
 
-      {/* Content Layer */}
-      <div className="relative flex h-full flex-col items-center justify-center px-4 text-center">
-        <div className="absolute top-8 left-6 text-emerald-600 opacity-70">
-          <Star size={28} fill="currentColor" />
-        </div>
-        <div className="absolute top-16 right-10 text-emerald-600 opacity-70">
-          <Trees size={32} />
+      {/* --- LAYER 3: KONTEN (BUTTON & INFO) --- */}
+      {/* z-30 agar di atas background dan salju. Gunakan flex col untuk centering dan pt/mt untuk penyesuaian posisi vertikal */}
+      {/* items-center dan w-full untuk centering horizontal */}
+      <div className="relative z-30 flex h-full w-full flex-col items-center"> 
+        
+        {/* TRICK: Gunakan padding-top (pt-...) untuk menentukan posisi vertikal tombol. */}
+        {/* Sesuaikan nilai 'pt-[75vh]' ini sampai button pas di posisi yang diinginkan (misalnya di bawah logo). */}
+        <div className="pt-[80vh] text-center space-y-6">
+            {/* Button dibuat menarik dengan shadow agar kontras dengan BG merah */}
+            <button
+              onClick={scrollToForm}
+              className="
+                group relative px-8 py-3 rounded-full 
+                bg-emerald-600 text-white font-bold text-lg
+                shadow-[0_0_20px_rgba(5,150,105,0.5)]
+                hover:bg-emerald-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(5,150,105,0.7)]
+                transition-all duration-300 ease-out
+                border-2 border-emerald-400/30
+              "
+            >
+              Open Invitation
+              {/* Efek kilau kecil */}
+              <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+
+            {/* Info tambahan kecil di bawah button (opsional) */}
+            <div className="mt-0 text-white/90 font-medium drop-shadow-md">
+              <p>December 19, 2025 • 6:00 PM</p>
+            </div>
         </div>
 
-        {/* Main content */}
-        <div className="space-y-6">
-          <h1 className="text-balance text-5xl font-bold tracking-tight text-slate-900 md:text-6xl">
-            I'll be Home for Christmas
-          </h1>
-
-          <div className="space-y-2">
-            <p className="text-lg font-semibold text-emerald-700">
-              December 25, 2024
-            </p>
-            <p className="text-base text-slate-600">6:00 PM - 9:00 PM</p>
-            <p className="text-base text-slate-600">Community Church Center</p>
-          </div>
-
-          <button
-            onClick={scrollToForm}
-            className="mx-auto mt-8 block rounded-full bg-emerald-600 px-8 py-3 font-semibold text-white transition-all hover:bg-emerald-700 active:scale-95"
-          >
-            Register Now
-          </button>
-        </div>
-
-        {/* Decorative bottom element */}
-        <div className="absolute bottom-8 right-8 text-red-500 opacity-60">
-          <Star size={20} fill="currentColor" />
-        </div>
       </div>
+
     </section>
   );
 }
