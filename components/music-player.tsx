@@ -1,31 +1,41 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Music, Music2 } from "lucide-react";
+import { Music, Music2, VolumeX } from "lucide-react";
 
 export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fadeIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-play music on mount (muted first due to browser policy)
   useEffect(() => {
+    // Restore muted preference from localStorage
+    const storedMuted =
+      typeof window !== "undefined" && localStorage.getItem("music-muted");
+    const initialMuted = storedMuted === "true";
+    setIsMuted(initialMuted);
+
     const playAudio = async () => {
       try {
-        if (audioRef.current) {
-          audioRef.current.volume = 0; // Start from 0
-          const playPromise = audioRef.current.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                fadeIn(); // Fade in after play starts
-                setIsPlaying(true);
-              })
-              .catch(() => {
-                // Browser blocked autoplay, user must click button
-                setIsPlaying(false);
-              });
-          }
+        if (!audioRef.current) return;
+
+        audioRef.current.muted = initialMuted;
+        audioRef.current.volume = initialMuted ? 0 : 0;
+
+        // Try to play; if browser blocks autoplay, user must click
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              if (!initialMuted) fadeIn();
+              setIsPlaying(!initialMuted);
+            })
+            .catch(() => {
+              // Browser blocked autoplay
+              setIsPlaying(false);
+            });
         }
       } catch (error) {
         console.error("Error playing audio:", error);
@@ -72,22 +82,33 @@ export default function MusicPlayer() {
       if (audioRef.current && audioRef.current.volume > 0) {
         audioRef.current.volume = Math.max(audioRef.current.volume - step, 0);
       } else {
-        if (audioRef.current) audioRef.current.pause();
+        if (audioRef.current) {
+          audioRef.current.pause();
+          // ensure muted state on finish so mobile keeps it silent
+          audioRef.current.muted = true;
+        }
         if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
       }
     }, 50);
   };
 
   const toggleMusic = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        fadeOut();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play();
-        fadeIn();
-        setIsPlaying(true);
-      }
+    if (!audioRef.current) return;
+
+    if (isMuted) {
+      // Unmute & play
+      audioRef.current.muted = false;
+      setIsMuted(false);
+      localStorage.setItem("music-muted", "false");
+      audioRef.current.play().catch(() => {});
+      fadeIn();
+      setIsPlaying(true);
+    } else {
+      // Mute & fade out
+      fadeOut();
+      setIsMuted(true);
+      localStorage.setItem("music-muted", "true");
+      setIsPlaying(false);
     }
   };
 
@@ -108,7 +129,9 @@ export default function MusicPlayer() {
         title={isPlaying ? "Mute Music" : "Play Music"}
         aria-label={isPlaying ? "Mute Music" : "Play Music"}
       >
-        {isPlaying ? (
+        {isMuted ? (
+          <VolumeX size={24} />
+        ) : isPlaying ? (
           <Music2 size={24} className="animate-pulse" />
         ) : (
           <Music size={24} />
