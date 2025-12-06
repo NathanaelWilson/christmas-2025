@@ -162,7 +162,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  placeholder="John Doe"
+                  placeholder="Jessie Ellanda"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
@@ -271,7 +271,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
           </div>
 
           {/* Bottom decorative border */}
-          <div className="h-2 bg-gradient-to-r from-red-600 via-red-500 to-red-600" />
+          <div className="h-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
         </div>
       </div>
     </div>

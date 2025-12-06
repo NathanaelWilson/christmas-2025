@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
 
 export default function HeroSection() {
   const [timeLeft, setTimeLeft] = useState({
@@ -9,6 +8,8 @@ export default function HeroSection() {
     hours: 0,
     minutes: 0,
   });
+
+  // const isMobile = typeof window !== "undefined" && window.innerWidth <= 480;
 
   useEffect(() => {
     const targetDate = new Date("2025-12-19T19:00:00+07:00").getTime();
@@ -40,17 +41,34 @@ export default function HeroSection() {
   };
 
   return (
-    // 1. Parent container relative agar child absolute patuh pada area ini
-    // h-screen w-full
-    <section className="relative h-screen w-full overflow-hidden bg-red-800">
-      {/* --- STYLE SALJU (TETAP SAMA) --- */}
+    <section
+      className="relative h-screen w-full overflow-hidden"
+      style={{ backgroundColor: "#7E0A06" }}
+    >
+      {/* 🔥 Overlay WARNING untuk non-HP */}
+      {/* {!isMobile && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-900 text-white text-center p-6">
+          <p className="text-2xl font-bold mb-3">⚠️ Warning</p>
+          <p className="text-lg font-medium">
+            This invitation is optimized for mobile view.
+            <br />
+            Please open this link on your phone.
+          </p>
+        </div>
+      )} */}
+
+      {/* --- SALJU --- */}
       <style>{`
         @keyframes fall-wind {
           0% { transform: translateY(0vh) translateX(0); opacity: 1; }
-          25% { transform: translateY(25vh) translateX(-15px); }
-          50% { transform: translateY(50vh) translateX(5px); }
-          75% { transform: translateY(75vh) translateX(-10px); opacity: 0.5; }
-          100% { transform: translateY(100vh) translateX(-30px); opacity: 0.0; }
+          25% { transform: translateY(25vh) translateX(-10px); }
+          50% { transform: translateY(50vh) translateX(8px); }
+          75% { transform: translateY(75vh) translateX(-5px); opacity: 0.5; }
+          100% { transform: translateY(100vh) translateX(-20px); opacity: 0.0; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-12px); }
         }
         .snowfall { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; }
         .snowflake { position: absolute; top: -10vh; width: 10px; height: 10px; background: white; border-radius: 50%; animation: fall-wind linear infinite; }
@@ -64,86 +82,78 @@ export default function HeroSection() {
         .snowflake:nth-child(8) { left: 45%; animation-duration: 9s; animation-delay: 0.5s; width: 5px; height: 5px; }
         .snowflake:nth-child(9) { left: 60%; animation-duration: 12s; animation-delay: 2.5s; }
         .snowflake:nth-child(10) { left: 95%; animation-duration: 15s; animation-delay: 4s; width: 8px; height: 8px; }
+        .logo-floating {
+          animation: float 3s ease-in-out infinite;
+        }
       `}</style>
 
-      {/* --- LAYER 1: BACKGROUND IMAGE UTAMA (LOGO) --- */}
-      {/* Absolute inset-0 agar gambar memenuhi layar. Gunakan flex/grid untuk centering. */}
-      {/* z-0 agar di lapisan paling bawah */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center">
-        <img
-          src="/Logo.png"
-          alt="Christmas Background Logo"
-          className="w-full h-full object-contain object-center"
-        />
-        {/* Opsional: Overlay gelap sedikit agar tulisan/button lebih pop-up */}
-        {/* <div className="absolute inset-0 bg-black/10" /> */}
-      </div>
-
-      {/* --- LAYER 2: EFEK SALJU --- */}
+      {/* SALJU */}
       <div className="snowfall">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="snowflake" />
         ))}
       </div>
 
-      {/* --- LAYER 3: KONTEN (BUTTON & INFO) --- */}
-      {/* z-30 agar di atas background dan salju. Gunakan flex col untuk centering dan pt/mt untuk penyesuaian posisi vertikal */}
-      {/* items-center dan w-full untuk centering horizontal */}
-      <div className="relative z-30 flex h-full w-full flex-col items-center">
-        {/* TRICK: Gunakan padding-top (pt-...) untuk menentukan posisi vertikal tombol. */}
-        {/* Sesuaikan nilai 'pt-[75vh]' ini sampai button pas di posisi yang diinginkan (misalnya di bawah logo). */}
-        <div className="pt-[80vh] text-center space-y-6">
-          {/* Button dibuat menarik dengan shadow agar kontras dengan BG merah */}
-          <button
-            onClick={scrollToForm}
-            className="
-                group relative px-8 py-3 rounded-full 
-                bg-emerald-600 text-white font-bold text-lg
-                shadow-[0_0_20px_rgba(5,150,105,0.5)]
-                hover:bg-emerald-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(5,150,105,0.7)]
-                transition-all duration-300 ease-out
-                border-2 border-emerald-400/30
-              "
-          >
-            Open Invitation
-            {/* Efek kilau kecil */}
-            <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </button>
+      {/* --- KONTEN UTAMA --- */}
+      {/* Content container - logo is part of normal flow */}
+      <div className="relative z-30 flex h-full w-full flex-col items-center justify-center gap-0 px-4">
+        {/* Logo with floating animation */}
+        <img
+          src="/Logo-Christmas.webp"
+          alt="Logo"
+          className="logo-floating h-100 w-100 object-contain"
+        />
 
-          <div className="mt-0 text-white/90 font-medium drop-shadow-md space-y-3">
-            <p className="text-lg font-semibold tracking-wide">
-              December 19, 2025 • 7:00 PM WIB
-            </p>
+        {/* TOMBOL */}
+        <button
+          onClick={scrollToForm}
+          className="
+            group relative px-8 py-3 rounded-full 
+            bg-emerald-600 text-white font-bold text-lg
+            shadow-[0_0_20px_rgba(5,150,105,0.5)]
+            hover:bg-emerald-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(5,150,105,0.7)]
+            transition-all duration-300 ease-out
+            border-2 border-emerald-400/30
+          "
+        >
+          Open Invitation
+          <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
 
-            {/* COUNTDOWN - single clean box */}
-            <div className="flex items-center justify-center">
-              <div className="flex items-stretch bg-white/6 backdrop-blur-sm border border-white/20 rounded-xl px-2 py-2 shadow-sm">
-                <div className="flex items-center divide-x divide-white/10 w-full">
-                  <div className="flex-1 px-4 text-center">
-                    <div className="text-2xl font-semibold text-white">
-                      {String(timeLeft.days).padStart(2, "0")}
-                    </div>
-                    <div className="text-xs text-white/80 uppercase mt-1">
-                      Days
-                    </div>
+        {/* INFO WAKTU */}
+        <div className="mt-6 text-white/90 font-medium text-center drop-shadow-md">
+          <p className="text-lg font-semibold tracking-wide">
+            December 19, 2025 • 7:00 PM WIB
+          </p>
+
+          {/* COUNTDOWN */}
+          <div className="flex items-center justify-center mt-2">
+            <div className="flex items-stretch bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-2 py-3 shadow-sm gap-0">
+              <div className="flex items-center divide-x divide-white/10">
+                <div className="w-20 px-3 text-center flex-shrink-0">
+                  <div className="text-2xl font-semibold text-white font-mono">
+                    {String(timeLeft.days).padStart(2, "0")}
                   </div>
-
-                  <div className="flex-1 px-4 text-center">
-                    <div className="text-2xl font-semibold text-white">
-                      {String(timeLeft.hours).padStart(2, "0")}
-                    </div>
-                    <div className="text-xs text-white/80 uppercase mt-1">
-                      Hours
-                    </div>
+                  <div className="text-xs text-white/80 uppercase mt-1">
+                    Days
                   </div>
+                </div>
 
-                  <div className="flex-1 px-4 text-center">
-                    <div className="text-2xl font-semibold text-white">
-                      {String(timeLeft.minutes).padStart(2, "0")}
-                    </div>
-                    <div className="text-xs text-white/80 uppercase mt-1">
-                      Minutes
-                    </div>
+                <div className="w-20 px-3 text-center flex-shrink-0">
+                  <div className="text-2xl font-semibold text-white font-mono">
+                    {String(timeLeft.hours).padStart(2, "0")}
+                  </div>
+                  <div className="text-xs text-white/80 uppercase mt-1">
+                    Hours
+                  </div>
+                </div>
+
+                <div className="w-20 px-3 text-center flex-shrink-0">
+                  <div className="text-2xl font-semibold text-white font-mono">
+                    {String(timeLeft.minutes).padStart(2, "0")}
+                  </div>
+                  <div className="text-xs text-white/80 uppercase mt-1">
+                    Minutes
                   </div>
                 </div>
               </div>
