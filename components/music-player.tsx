@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Music, Music2, VolumeX } from "lucide-react";
+import { Music2, VolumeX } from "lucide-react";
 
 export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -96,20 +96,31 @@ export default function MusicPlayer() {
     if (!audioRef.current) return;
 
     if (isMuted) {
-      // Unmute & play
+      // Unmute & play: ensure volume starts at 0 then fade in
       audioRef.current.muted = false;
       setIsMuted(false);
       localStorage.setItem("music-muted", "false");
-      audioRef.current.play().catch(() => {});
+      try {
+        audioRef.current.volume = 0;
+        awaitPlay(audioRef.current);
+      } catch {}
       fadeIn();
       setIsPlaying(true);
     } else {
-      // Mute & fade out
-      fadeOut();
+      // Mute: set muted immediately to guarantee silence on mobile,
+      // then perform fade-out cleanup in the background
+      if (audioRef.current) audioRef.current.muted = true;
       setIsMuted(true);
       localStorage.setItem("music-muted", "true");
+      // also pause to stop playback
+      if (audioRef.current) audioRef.current.pause();
       setIsPlaying(false);
     }
+  };
+
+  // Helper to play with catch
+  const awaitPlay = (audio: HTMLAudioElement) => {
+    return audio.play().catch(() => Promise.resolve());
   };
 
   return (
@@ -134,7 +145,7 @@ export default function MusicPlayer() {
         ) : isPlaying ? (
           <Music2 size={24} className="animate-pulse" />
         ) : (
-          <Music size={24} />
+          <Music2 size={24} />
         )}
       </button>
     </>
