@@ -181,7 +181,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                   name="whatsappNumber"
                   value={formData.whatsappNumber}
                   onChange={handleInputChange}
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="081xxxxxxxxx"
                   className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100"
                 />
               </div>

@@ -101,7 +101,7 @@ export default function HeroSection() {
         <img
           src="/LOGO-Christmas.webp"
           alt="Logo"
-          className="logo-floating h-200 w-200 object-contain"
+          className="logo-floating h-110 w-110 object-contain"
         />
 
         {/* TOMBOL */}
