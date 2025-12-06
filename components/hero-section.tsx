@@ -1,8 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 
 export default function HeroSection() {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+  });
+
+  useEffect(() => {
+    const targetDate = new Date("2025-12-19T19:00:00+07:00").getTime();
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      setTimeLeft({
+        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+        hours: Math.floor(
+          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        ),
+        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const scrollToForm = () => {
     const formSection = document.getElementById("registration-form");
     formSection?.scrollIntoView({ behavior: "smooth" });
@@ -12,7 +43,6 @@ export default function HeroSection() {
     // 1. Parent container relative agar child absolute patuh pada area ini
     // h-screen w-full
     <section className="relative h-screen w-full overflow-hidden bg-red-800">
-      
       {/* --- STYLE SALJU (TETAP SAMA) --- */}
       <style>{`
         @keyframes fall-wind {
@@ -40,10 +70,10 @@ export default function HeroSection() {
       {/* Absolute inset-0 agar gambar memenuhi layar. Gunakan flex/grid untuk centering. */}
       {/* z-0 agar di lapisan paling bawah */}
       <div className="absolute inset-0 z-0 flex items-center justify-center">
-        <img 
-          src="/Logo.png" 
-          alt="Christmas Background Logo" 
-          className="w-full h-full object-contain object-center" 
+        <img
+          src="/Logo.png"
+          alt="Christmas Background Logo"
+          className="w-full h-full object-contain object-center"
         />
         {/* Opsional: Overlay gelap sedikit agar tulisan/button lebih pop-up */}
         {/* <div className="absolute inset-0 bg-black/10" /> */}
@@ -59,15 +89,14 @@ export default function HeroSection() {
       {/* --- LAYER 3: KONTEN (BUTTON & INFO) --- */}
       {/* z-30 agar di atas background dan salju. Gunakan flex col untuk centering dan pt/mt untuk penyesuaian posisi vertikal */}
       {/* items-center dan w-full untuk centering horizontal */}
-      <div className="relative z-30 flex h-full w-full flex-col items-center"> 
-        
+      <div className="relative z-30 flex h-full w-full flex-col items-center">
         {/* TRICK: Gunakan padding-top (pt-...) untuk menentukan posisi vertikal tombol. */}
         {/* Sesuaikan nilai 'pt-[75vh]' ini sampai button pas di posisi yang diinginkan (misalnya di bawah logo). */}
         <div className="pt-[80vh] text-center space-y-6">
-            {/* Button dibuat menarik dengan shadow agar kontras dengan BG merah */}
-            <button
-              onClick={scrollToForm}
-              className="
+          {/* Button dibuat menarik dengan shadow agar kontras dengan BG merah */}
+          <button
+            onClick={scrollToForm}
+            className="
                 group relative px-8 py-3 rounded-full 
                 bg-emerald-600 text-white font-bold text-lg
                 shadow-[0_0_20px_rgba(5,150,105,0.5)]
@@ -75,20 +104,53 @@ export default function HeroSection() {
                 transition-all duration-300 ease-out
                 border-2 border-emerald-400/30
               "
-            >
-              Open Invitation
-              {/* Efek kilau kecil */}
-              <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
+          >
+            Open Invitation
+            {/* Efek kilau kecil */}
+            <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
 
-            {/* Info tambahan kecil di bawah button (opsional) */}
-            <div className="mt-0 text-white/90 font-medium drop-shadow-md">
-              <p>December 19, 2025 • 6:00 PM</p>
+          <div className="mt-0 text-white/90 font-medium drop-shadow-md space-y-3">
+            <p className="text-lg font-semibold tracking-wide">
+              December 19, 2025 • 7:00 PM WIB
+            </p>
+
+            {/* COUNTDOWN - single clean box */}
+            <div className="flex items-center justify-center">
+              <div className="flex items-stretch bg-white/6 backdrop-blur-sm border border-white/20 rounded-xl px-2 py-2 shadow-sm">
+                <div className="flex items-center divide-x divide-white/10 w-full">
+                  <div className="w-16 sm:w-20 px-2 text-center flex-shrink-0">
+                    <div className="text-2xl font-semibold text-white font-mono">
+                      {String(timeLeft.days).padStart(2, "0")}
+                    </div>
+                    <div className="text-xs text-white/80 uppercase mt-1">
+                      Days
+                    </div>
+                  </div>
+
+                  <div className="w-16 sm:w-20 px-2 text-center flex-shrink-0">
+                    <div className="text-2xl font-semibold text-white font-mono">
+                      {String(timeLeft.hours).padStart(2, "0")}
+                    </div>
+                    <div className="text-xs text-white/80 uppercase mt-1">
+                      Hours
+                    </div>
+                  </div>
+
+                  <div className="w-16 sm:w-20 px-2 text-center flex-shrink-0">
+                    <div className="text-2xl font-semibold text-white font-mono">
+                      {String(timeLeft.minutes).padStart(2, "0")}
+                    </div>
+                    <div className="text-xs text-white/80 uppercase mt-1">
+                      Minutes
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
-
       </div>
-
     </section>
   );
 }
