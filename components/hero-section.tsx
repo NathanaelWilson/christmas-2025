@@ -36,8 +36,18 @@ export default function HeroSection() {
   }, []);
 
   const scrollToForm = () => {
-    const formSection = document.getElementById("registration-form");
-    formSection?.scrollIntoView({ behavior: "smooth" });
+    // Support both possible IDs: 'form-section' (used in page) and
+    // 'registration-form' (older name). This makes the scroll robust
+    // if IDs differ between files.
+    const formSection =
+      document.getElementById("form-section") ||
+      document.getElementById("registration-form");
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      // As a fallback, try scrolling to top of page
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
