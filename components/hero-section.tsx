@@ -119,8 +119,8 @@ export default function HeroSection() {
             <div className="flex items-center justify-center">
               <div className="flex items-stretch bg-white/6 backdrop-blur-sm border border-white/20 rounded-xl px-2 py-2 shadow-sm">
                 <div className="flex items-center divide-x divide-white/10 w-full">
-                  <div className="w-16 sm:w-20 px-2 text-center flex-shrink-0">
-                    <div className="text-2xl font-semibold text-white font-mono">
+                  <div className="flex-1 px-4 text-center">
+                    <div className="text-2xl font-semibold text-white">
                       {String(timeLeft.days).padStart(2, "0")}
                     </div>
                     <div className="text-xs text-white/80 uppercase mt-1">
@@ -128,8 +128,8 @@ export default function HeroSection() {
                     </div>
                   </div>
 
-                  <div className="w-16 sm:w-20 px-2 text-center flex-shrink-0">
-                    <div className="text-2xl font-semibold text-white font-mono">
+                  <div className="flex-1 px-4 text-center">
+                    <div className="text-2xl font-semibold text-white">
                       {String(timeLeft.hours).padStart(2, "0")}
                     </div>
                     <div className="text-xs text-white/80 uppercase mt-1">
@@ -137,8 +137,8 @@ export default function HeroSection() {
                     </div>
                   </div>
 
-                  <div className="w-16 sm:w-20 px-2 text-center flex-shrink-0">
-                    <div className="text-2xl font-semibold text-white font-mono">
+                  <div className="flex-1 px-4 text-center">
+                    <div className="text-2xl font-semibold text-white">
                       {String(timeLeft.minutes).padStart(2, "0")}
                     </div>
                     <div className="text-xs text-white/80 uppercase mt-1">
