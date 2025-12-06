@@ -99,9 +99,9 @@ export default function HeroSection() {
       <div className="relative z-30 flex h-full w-full flex-col items-center justify-center gap-0 px-4">
         {/* Logo with floating animation */}
         <img
-          src="/Logo-Christmas.webp"
+          src="/LOGO-Christmas.webp"
           alt="Logo"
-          className="logo-floating h-100 w-100 object-contain"
+          className="logo-floating h-200 w-200 object-contain"
         />
 
         {/* TOMBOL */}
