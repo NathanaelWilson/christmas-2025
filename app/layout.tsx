@@ -42,7 +42,7 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <MusicPlayer />
         {children}
-        <FrameOverlay />
+        {/* <FrameOverlay /> */}
         <Analytics />
       </body>
     </html>

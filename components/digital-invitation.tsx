@@ -27,6 +27,22 @@ export default function DigitalInvitation({
   const stackRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // Pre-load all images to ensure they're in cache before capturing
+  const preloadImages = useCallback(async () => {
+    const imageUrls = Object.values(images);
+    const loadPromises = imageUrls.map(
+      (url) =>
+        new Promise<void>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error(`Failed to load ${url}`));
+          img.src = url;
+        })
+    );
+    await Promise.all(loadPromises);
+  }, []);
+
   // --- LOGIKA PENYIMPANAN GAMBAR ---
   const handleSave = useCallback(async () => {
     if (!stackRef.current || isGenerating) return;
@@ -34,11 +50,19 @@ export default function DigitalInvitation({
     try {
       setIsGenerating(true);
 
+      // Step 1: Pre-load all images first
+      await preloadImages();
+
+      // Step 2: Wait a bit for DOM to fully render with loaded images
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Step 3: Convert to PNG with higher quality
       const dataUrl = await toPng(stackRef.current, {
         cacheBust: true,
-        pixelRatio: 2, // Kualitas ditingkatkan sedikit agar teks tajam
+        pixelRatio: 3, // Higher ratio for mobile (better quality)
         backgroundColor: "#F5F5F4",
         skipAutoScale: true,
+        quality: 0.95,
       });
 
       const filename = `Invitation-${
@@ -86,7 +110,7 @@ export default function DigitalInvitation({
     } finally {
       setIsGenerating(false);
     }
-  }, [data?.fullName, isGenerating]);
+  }, [data?.fullName, isGenerating, preloadImages]);
   // ---------------------------------
 
   const eventDetails = {

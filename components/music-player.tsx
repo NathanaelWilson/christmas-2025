@@ -11,10 +11,10 @@ export default function MusicPlayer() {
 
   // Auto-play music on mount (muted first due to browser policy)
   useEffect(() => {
-    // Restore muted preference from localStorage
+    // Restore muted preference from localStorage, default to true (muted)
     const storedMuted =
       typeof window !== "undefined" && localStorage.getItem("music-muted");
-    const initialMuted = storedMuted === "true";
+    const initialMuted = storedMuted !== null ? storedMuted === "true" : true;
     setIsMuted(initialMuted);
 
     const playAudio = async () => {
@@ -22,15 +22,15 @@ export default function MusicPlayer() {
         if (!audioRef.current) return;
 
         audioRef.current.muted = initialMuted;
-        audioRef.current.volume = initialMuted ? 0 : 0;
+        audioRef.current.volume = 0;
 
         // Try to play; if browser blocks autoplay, user must click
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              if (!initialMuted) fadeIn();
-              setIsPlaying(!initialMuted);
+              // Don't auto fade-in, only play if user unmutes
+              setIsPlaying(false);
             })
             .catch(() => {
               // Browser blocked autoplay
@@ -107,13 +107,10 @@ export default function MusicPlayer() {
       fadeIn();
       setIsPlaying(true);
     } else {
-      // Mute: set muted immediately to guarantee silence on mobile,
-      // then perform fade-out cleanup in the background
-      if (audioRef.current) audioRef.current.muted = true;
+      // Start fade-out first so volume gradually decreases
+      fadeOut();
       setIsMuted(true);
       localStorage.setItem("music-muted", "true");
-      // also pause to stop playback
-      if (audioRef.current) audioRef.current.pause();
       setIsPlaying(false);
     }
   };
@@ -133,12 +130,24 @@ export default function MusicPlayer() {
         preload="auto"
       />
 
+      <style>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .music-button-rotating {
+          animation: spin-slow 6s linear infinite;
+        }
+      `}</style>
+
       {/* Music Toggle Button - Fixed Position */}
       <button
         onClick={toggleMusic}
-        className="fixed bottom-8 right-8 z-50 rounded-full bg-emerald-600 text-white p-3 shadow-lg hover:bg-emerald-500 hover:scale-110 transition-all duration-300 border-4 border-white"
-        title={isPlaying ? "Mute Music" : "Play Music"}
-        aria-label={isPlaying ? "Mute Music" : "Play Music"}
+        className={`fixed bottom-8 right-8 z-50 rounded-full bg-emerald-600 text-white p-3 shadow-lg hover:bg-emerald-500 hover:scale-110 transition-all duration-300 border-4 border-white ${
+          !isMuted ? "music-button-rotating" : ""
+        }`}
+        title={isMuted ? "Play Music" : "Mute Music"}
+        aria-label={isMuted ? "Play Music" : "Mute Music"}
       >
         {isMuted ? (
           <VolumeX size={24} />
