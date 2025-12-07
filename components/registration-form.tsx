@@ -1,31 +1,33 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
-import { ChevronDown, Loader2, Star } from "lucide-react";
+import { useState, useRef } from "react";
+import { ChevronDown, Loader2, Upload, ArrowLeft } from "lucide-react";
 
 interface FormData {
   fullName: string;
   whatsappNumber: string;
   inConnectGroup: string;
   connectGroup: string;
+  proofFile: File | null;
 }
 
-interface RegistrationFormProps {
-  onSubmit: (data: FormData) => void;
-}
-
-export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
+export default function RegistrationForm({
+  onSubmit,
+}: {
+  onSubmit: (d: FormData) => void;
+}) {
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     whatsappNumber: "",
     inConnectGroup: "",
     connectGroup: "",
+    proofFile: null,
   });
 
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const cgOptions = [
     "CG 07 - Ailicia Wibiksono",
@@ -37,241 +39,331 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
     "CG 110 - Javier",
   ];
 
+  const readableBytes = (bytes: number) => {
+    const units = ["B", "KB", "MB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return (bytes / Math.pow(1024, i)).toFixed(1) + " " + units[i];
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "inConnectGroup" && value === "No"
+        ? { connectGroup: "" }
+        : {}),
     }));
-
-    if (name === "inConnectGroup" && value === "No") {
-      setFormData((prev) => ({
-        ...prev,
-        connectGroup: "",
-      }));
-    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("File must be an image (screenshot).");
+      return;
+    }
+
+    if (file.size > 10_000_000) {
+      setError("Image too large. Max 10MB.");
+      return;
+    }
+
+    setError("");
+    setFormData((prev) => ({ ...prev, proofFile: file }));
+  };
+
+  const goNext = () => {
+    setError("");
+
+    if (!formData.fullName.trim())
+      return setError("Please enter your full name.");
+    if (!formData.whatsappNumber.trim())
+      return setError("Please enter your WhatsApp number.");
+    if (!formData.inConnectGroup)
+      return setError("Please select if you are in a CG.");
+    if (formData.inConnectGroup === "Yes" && !formData.connectGroup)
+      return setError("Please select your CG.");
+
+    setStep(2);
+  };
+
+  const handleReserve = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!formData.fullName.trim()) {
-      setError("Please enter your full name");
-      return;
-    }
-    if (!formData.whatsappNumber.trim()) {
-      setError("Please enter your WhatsApp number");
-      return;
-    }
-    if (!formData.inConnectGroup) {
-      setError("Please select whether you are in a Connect Group");
-      return;
-    }
-    if (formData.inConnectGroup === "Yes" && !formData.connectGroup) {
-      setError("Please select your Connect Group");
-      return;
-    }
+    if (!formData.proofFile)
+      return setError("Please upload your transfer screenshot.");
 
     setLoading(true);
 
     try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          whatsappNumber: formData.whatsappNumber,
-          inConnectGroup: formData.inConnectGroup,
-          connectGroup:
-            formData.inConnectGroup === "Yes" ? formData.connectGroup : null,
-        }),
-      });
+      const dataToSend = new FormData();
+      dataToSend.append("fullName", formData.fullName);
+      dataToSend.append("whatsappNumber", formData.whatsappNumber);
+      dataToSend.append("inConnectGroup", formData.inConnectGroup);
+      dataToSend.append("connectGroup", formData.connectGroup || "");
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Registration failed");
+      if (formData.proofFile) {
+        dataToSend.append("proofFile", formData.proofFile);
       }
 
-      console.log("[v0] Registration successful");
-      setLoading(false);
-      onSubmit(formData);
-    } catch (err) {
-      console.error("[v0] Registration error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to register. Please try again."
-      );
+      console.log("Mengirim data ke /api/register..."); // Debug log
+
+      const response = await fetch("/api/register", {
+        method: "POST",
+        body: dataToSend,
+      });
+
+      // --- PERBAIKAN PENTING DI SINI ---
+      // Ambil respons sebagai text dulu untuk pengecekan
+      const responseText = await response.text();
+      console.log("Response dari server:", responseText); // Cek Console browser (F12)
+
+      // Coba parse ke JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        // Jika gagal parse, berarti server kirim HTML (biasanya Error page)
+        throw new Error(
+          `Server Error: Tidak merespons dengan JSON. Kemungkinan URL salah atau Server Crash. Isi: ${responseText.slice(
+            0,
+            50
+          )}...`
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(result.error || "Gagal mendaftar");
+      }
+
+      if (onSubmit) onSubmit(formData);
+    } catch (err: any) {
+      console.error("Error Detail:", err);
+      // Tampilkan error yang lebih jelas ke user
+      setError(err.message || "Terjadi kesalahan sistem.");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl">
-      {/* Decorative stars */}
-      <div className="absolute top-1/3 left-12 text-yellow-300 opacity-70 animate-pulse">
-        <Star size={24} fill="currentColor" />
+    <div className="w-full max-w-xl mx-auto mt-10 px-4">
+      {/* Progress dots */}
+      <div className="flex justify-center gap-3 mb-5">
+        <div
+          className={`h-3 w-3 rounded-full border border-amber-200 ${
+            step === 1 ? "bg-amber-50" : "bg-transparent"
+          }`}
+        />
+        <div
+          className={`h-3 w-3 rounded-full border border-amber-200 ${
+            step === 2 ? "bg-amber-50" : "bg-transparent"
+          }`}
+        />
       </div>
-      <div
-        className="absolute top-1/2 right-16 text-yellow-200 opacity-60 animate-pulse"
-        style={{ animationDelay: "0.5s" }}
-      >
-        <Star size={20} fill="currentColor" />
-      </div>
 
-      {/* Main content card with paper-cut effect */}
-      <div className="relative z-20 w-full">
-        {/* Paper-cut shadow effect */}
-        <div className="absolute inset-0 rounded-3xl bg-black/10 blur-2xl -z-10 transform translate-y-4" />
+      {/* Card container */}
+      <div className="relative overflow-hidden rounded-3xl border-4 border-emerald-600 shadow-xl bg-white">
+        <div className="h-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
 
-        {/* Main card */}
-        <div className="rounded-3xl bg-white/95 backdrop-blur shadow-2xl overflow-hidden border-4 border-emerald-600">
-          {/* Top decorative border */}
-          <div className="h-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
+        {/* Sliding wrapper */}
+        <div
+          className="flex transition-transform duration-500 ease-in-out"
+          style={{ transform: `translateX(${step === 1 ? "0%" : "-100%"})` }}
+        >
+          {/* SLIDE 1 — Info */}
+          <div className="w-full shrink-0 px-8 py-10 space-y-6">
+            <h2 className="text-4xl font-bold text-center text-slate-900">
+              Join the Joy
+            </h2>
+            <p className="text-center text-sm text-stone-500">
+              Fill your details below to continue
+            </p>
 
-          {/* Content */}
-          <div className="px-8 py-12 md:px-12 md:py-16 space-y-8">
-            {/* Header */}
-            <div className="text-center space-y-3">
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 text-balance">
-                Join the Joy
-              </h2>
-              <p className="text-sm text-slate-500">
-                Register below to reserve your seat
-              </p>
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                Full Name
+              </label>
+              <input
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleInputChange}
+                className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3"
+                placeholder="Jessie Ellanda"
+              />
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Full Name */}
-              <div>
-                <label
-                  htmlFor="fullName"
-                  className="block text-sm font-semibold text-slate-700 mb-2"
-                >
-                  Full Name
-                </label>
-                <input
-                  id="fullName"
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  placeholder="Jessie Ellanda"
-                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                />
-              </div>
+            {/* WhatsApp */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                WhatsApp Number
+              </label>
+              <input
+                name="whatsappNumber"
+                value={formData.whatsappNumber}
+                onChange={handleInputChange}
+                className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3"
+                placeholder="08xxxxxxxxxx"
+              />
+            </div>
 
-              {/* WhatsApp Number */}
-              <div>
-                <label
-                  htmlFor="whatsappNumber"
-                  className="block text-sm font-semibold text-slate-700 mb-2"
-                >
-                  WhatsApp Number
-                </label>
-                <input
-                  id="whatsappNumber"
-                  type="tel"
-                  name="whatsappNumber"
-                  value={formData.whatsappNumber}
+            {/* In CG */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                Are you in a Connect Group (CG)?
+              </label>
+              <div className="relative">
+                <select
+                  name="inConnectGroup"
+                  value={formData.inConnectGroup}
                   onChange={handleInputChange}
-                  placeholder="08xxxxxxxxxx"
-                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 placeholder-slate-400 transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                />
-              </div>
-
-              {/* Connect Group Question */}
-              <div>
-                <label
-                  htmlFor="inConnectGroup"
-                  className="block text-sm font-semibold text-slate-700 mb-2"
+                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 appearance-none"
                 >
-                  Are you in a Connect Group (CG)?
+                  <option value="">Select an option</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-700" />
+              </div>
+            </div>
+
+            {/* CG List */}
+            {formData.inConnectGroup === "Yes" && (
+              <div className="animate-fadeIn">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Select your CG
                 </label>
                 <div className="relative">
                   <select
-                    id="inConnectGroup"
-                    name="inConnectGroup"
-                    value={formData.inConnectGroup}
+                    name="connectGroup"
+                    value={formData.connectGroup}
                     onChange={handleInputChange}
-                    className="w-full appearance-none rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                    className="w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 py-3 appearance-none"
                   >
-                    <option value="">Select an option</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
+                    <option value="">Select your CG</option>
+                    {cgOptions.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
                   </select>
-                  <ChevronDown
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
-                    size={18}
-                  />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-700" />
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={goNext}
+              className="w-full rounded-xl bg-emerald-600 text-white py-3 font-bold hover:bg-emerald-700 shadow"
+            >
+              Next Slide
+            </button>
+          </div>
+
+          {/* SLIDE 2 — Payment */}
+          <div className="w-full shrink-0 px-8 py-10 space-y-6">
+            <button
+              onClick={() => setStep(1)}
+              className="flex items-center gap-2 text-sm text-emerald-700 mb-2"
+            >
+              <ArrowLeft size={18} /> Back
+            </button>
+
+            <h2 className="text-3xl font-bold text-center text-slate-900">
+              Payment Details
+            </h2>
+            <p className="text-center text-sm text-stone-500">
+              Transfer <strong>Rp 50.000</strong> to complete your reservation
+            </p>
+
+            {/* Bank Card */}
+            <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 shadow-sm">
+              <p className="text-sm text-slate-700">
+                <span className="font-semibold">Bank:</span> BCA
+              </p>
+              <p className="text-sm text-slate-700">
+                <span className="font-semibold">No Rekening:</span> 1234567890
+              </p>
+              <p className="text-sm text-slate-700">
+                <span className="font-semibold">A.n:</span> Nama Penerima
+              </p>
+            </div>
+
+            {/* Upload */}
+            <form onSubmit={handleReserve} className="space-y-4">
+              <label className="block text-sm font-semibold">
+                Upload Screenshot Transfer
+              </label>
+
+              <div className="flex items-center gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFilePicked}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-slate-300"
+                >
+                  <Upload size={18} /> Choose File
+                </button>
+
+                <div className="text-sm text-stone-600">
+                  {formData.proofFile ? (
+                    `${formData.proofFile.name} • ${readableBytes(
+                      formData.proofFile.size
+                    )}`
+                  ) : (
+                    <span className="text-stone-400">No file chosen</span>
+                  )}
                 </div>
               </div>
 
-              {/* Conditional CG Selection */}
-              {formData.inConnectGroup === "Yes" && (
-                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <label
-                    htmlFor="connectGroup"
-                    className="block text-sm font-semibold text-slate-700 mb-2"
-                  >
-                    Select your CG
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="connectGroup"
-                      name="connectGroup"
-                      value={formData.connectGroup}
-                      onChange={handleInputChange}
-                      className="w-full appearance-none rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 py-3 text-slate-900 transition-all focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                    >
-                      <option value="">Select your connect group</option>
-                      {cgOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600"
-                      size={18}
-                    />
-                  </div>
-                </div>
+              {/* Preview */}
+              {formData.proofFile && (
+                <img
+                  src={URL.createObjectURL(formData.proofFile)}
+                  className="w-28 h-28 rounded-xl object-cover border border-slate-200"
+                />
               )}
 
-              {/* Error Message */}
               {error && (
-                <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700 border-l-4 border-red-600 animate-in fade-in">
+                <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-emerald-600 px-6 py-3.5 font-bold text-white text-base transition-all hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                className="w-full rounded-xl bg-emerald-600 text-white py-3 font-bold hover:bg-emerald-700 flex items-center justify-center gap-2"
               >
                 {loading ? (
-                  <>
-                    <Loader2 size={20} className="animate-spin" />
-                    Processing...
-                  </>
+                  <Loader2 className="animate-spin" size={18} />
                 ) : (
-                  "Reserve My Seat"
+                  "Reserve My Spot"
                 )}
               </button>
             </form>
           </div>
-
-          {/* Bottom decorative border */}
-          <div className="h-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
         </div>
       </div>
     </div>
