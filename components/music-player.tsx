@@ -29,7 +29,7 @@ export default function MusicPlayer() {
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              // Don't auto fade-in, only play if user unmutes
+              // Don't auto fade-in; wait for user to unmute
               setIsPlaying(false);
             })
             .catch(() => {
@@ -84,8 +84,7 @@ export default function MusicPlayer() {
       } else {
         if (audioRef.current) {
           audioRef.current.pause();
-          // ensure muted state on finish so mobile keeps it silent
-          audioRef.current.muted = true;
+          audioRef.current.muted = true; // Explicit mute to guarantee silence
         }
         if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
       }
@@ -96,28 +95,22 @@ export default function MusicPlayer() {
     if (!audioRef.current) return;
 
     if (isMuted) {
-      // Unmute & play: ensure volume starts at 0 then fade in
+      // Unmute & play: set muted false first, then play
       audioRef.current.muted = false;
+      audioRef.current.volume = 0;
       setIsMuted(false);
       localStorage.setItem("music-muted", "false");
-      try {
-        audioRef.current.volume = 0;
-        awaitPlay(audioRef.current);
-      } catch {}
+      audioRef.current.play().catch(() => {});
       fadeIn();
       setIsPlaying(true);
     } else {
-      // Start fade-out first so volume gradually decreases
-      fadeOut();
+      // Mute: set muted true immediately, then fade out
+      audioRef.current.muted = true;
       setIsMuted(true);
       localStorage.setItem("music-muted", "true");
+      fadeOut();
       setIsPlaying(false);
     }
-  };
-
-  // Helper to play with catch
-  const awaitPlay = (audio: HTMLAudioElement) => {
-    return audio.play().catch(() => Promise.resolve());
   };
 
   return (

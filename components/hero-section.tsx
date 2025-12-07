@@ -133,7 +133,7 @@ export default function HeroSection() {
         {/* INFO WAKTU */}
         <div className="mt-6 text-white/90 font-medium text-center drop-shadow-md">
           <p className="text-lg font-semibold tracking-wide">
-            December 19, 2025 • 7:00 PM WIB
+            December 19, 2025 • 6:30 PM
           </p>
 
           {/* COUNTDOWN */}
