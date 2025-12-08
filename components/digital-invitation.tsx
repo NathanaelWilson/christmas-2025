@@ -157,7 +157,10 @@ export default function DigitalInvitation({
   };
 
   return (
-    <div className="flex min-h-screen items-start justify-center px-4 py-8 bg-stone-100 overflow-y-auto font-sans">
+    <div
+      className="flex min-h-screen items-start justify-center px-4 py-8 overflow-y-auto font-sans"
+      style={{ backgroundColor: "#7E0A06" }}
+    >
       <style>{`
         img {
           image-rendering: -webkit-optimize-contrast;
@@ -250,11 +253,11 @@ export default function DigitalInvitation({
         </div>
 
         {/* Footer Button Actions */}
-        <div className="flex gap-3 p-3 rounded-xl bg-white/90 backdrop-blur-sm border shadow-lg sticky bottom-4 z-40">
+        <div className="flex gap-3 p-3 rounded-xl bg-stone-100 backdrop-blur-sm border shadow-lg sticky bottom-4 z-40">
           <button
             onClick={handleSave}
             disabled={isGenerating}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-800 text-white rounded-lg font-bold active:scale-95 disabled:opacity-60 transition-all hover:bg-red-900"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg font-bold active:scale-95 disabled:opacity-60 transition-all hover:bg-red-900"
           >
             {isGenerating ? (
               <>
@@ -269,7 +272,7 @@ export default function DigitalInvitation({
 
           <button
             onClick={onClose}
-            className="px-4 py-3 bg-stone-200 text-stone-800 rounded-lg active:scale-95 hover:bg-stone-300 transition-all"
+            className="px-4 py-3 bg-stone-300 text-stone-800 rounded-lg active:scale-95 hover:bg-stone-300 transition-all"
           >
             <X size={20} />
           </button>
