@@ -308,10 +308,11 @@ export default function RegistrationForm({
                 <span className="font-semibold">Bank:</span> BCA
               </p>
               <p className="text-sm text-slate-700">
-                <span className="font-semibold">No Rekening:</span> 1234567890
+                <span className="font-semibold">No Rekening:</span> 0881995912
               </p>
               <p className="text-sm text-slate-700">
-                <span className="font-semibold">A.n:</span> Nama Penerima
+                <span className="font-semibold">A.n:</span> Kimberly Joseph
+                Wirawan
               </p>
             </div>
 
