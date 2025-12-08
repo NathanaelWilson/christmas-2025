@@ -136,7 +136,7 @@ export default function DigitalInvitation({
               <div className="w-[60%] flex flex-col justify-center pr-4 space-y-6 ml-4">
                 {/* Main Title (Handwritten) */}
                 <h1
-                  className="text-2xl sm:text-[2.8rem] leading-[0.9] text-red-900 transform -rotate-2"
+                  className="text-[20px] sm:text-[2.8rem] leading-[0.9] text-red-900 transform -rotate-2"
                   style={{ fontFamily: "var(--font-handwritten)" }}
                 >
                   “I'll be Home <br />{" "}
@@ -144,7 +144,7 @@ export default function DigitalInvitation({
                 </h1>
 
                 {/* Details (Monospace) */}
-                <div className="font-mono text-[12px] sm:text-[10px] text-sepia-900 space-y-1 tracking-tight opacity-90">
+                <div className="font-mono text-[11px] sm:text-[10px] text-sepia-900 space-y-1 tracking-tight opacity-90">
                   <p className="">{eventDetails.date}</p>
                   <p className="">{eventDetails.time}</p>
                   <p className="">{eventDetails.location}</p>
@@ -160,12 +160,15 @@ export default function DigitalInvitation({
               {/* Border Left sebagai pemisah */}
               <div className="w-[45%] relative pl-5 flex flex-col border-l border-sepia-900/20">
                 {/* "To" Section (Middle) */}
-                <div className="mt-15 mb-3 pt-10">
+                <div className="mt-12 mb-3 pt-10">
                   <p className="font-mono text-[10px] text-sepia-800 mb-1">
                     to:
                   </p>
                   <h2 className="font-mono text-[14px] sm:text-xl font-bold text-red-800 leading-tight break-words border-b border-dashed border-sepia-900/30 pb-1">
-                    {data?.fullName || "Dearest Friend"}
+                    {(data?.fullName || "Dearest Friend")
+                      .split(" ")
+                      .slice(0, 2)
+                      .join(" ")}
                   </h2>
                 </div>
 
@@ -173,7 +176,7 @@ export default function DigitalInvitation({
                 <div className="pb-2 mt-auto">
                   <p className="font-mono text-[10px] text-sepia-800">from:</p>
                   <p
-                    className="text-xl sm:text-2xl text-sepia-900 transform -rotate-2"
+                    className="text-[15px] sm:text-2xl text-sepia-900 transform -rotate-2"
                     style={{ fontFamily: "var(--font-handwritten)" }}
                   >
                     Coach Jessie
