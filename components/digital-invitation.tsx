@@ -174,7 +174,7 @@ export default function DigitalInvitation({
           className="flex flex-col gap-4 bg-stone-100 p-4 rounded-xl shadow-sm border border-stone-200"
         >
           {/* --- POSTCARD DESIGN --- */}
-          <div className="relative w-full aspect-[3/2] overflow-hidden shadow-md text-sepia-900 bg-[#f4f1ea]">
+          <div className="relative w-full shadow-none text-sepia-900 bg-[#f4f1ea]">
             <div
               className="absolute inset-0 bg-cover bg-center mix-blend-multiply opacity-90"
               style={{
@@ -226,7 +226,7 @@ export default function DigitalInvitation({
           {/* --- END POSTCARD --- */}
 
           {/* DRESSCODE */}
-          <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-sm">
+          <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-none">
             <img
               src={images.dresscodeInfo}
               crossOrigin="anonymous"
@@ -237,7 +237,7 @@ export default function DigitalInvitation({
           </div>
 
           {/* GIFT */}
-          <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-sm">
+          <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-none">
             <img
               src={images.giftInfo}
               crossOrigin="anonymous"
