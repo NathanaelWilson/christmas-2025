@@ -21,6 +21,20 @@ interface DigitalInvitationProps {
   onClose: () => void;
 }
 
+function waitForRenderStabilized(times = 3): Promise<void> {
+  return new Promise((resolve) => {
+    let count = 0;
+
+    function next() {
+      if (count >= times) return resolve();
+      count++;
+      requestAnimationFrame(() => requestAnimationFrame(next));
+    }
+
+    next();
+  });
+}
+
 export default function DigitalInvitation({
   data,
   onClose,
@@ -50,20 +64,22 @@ export default function DigitalInvitation({
 
     try {
       setIsGenerating(true);
+
+      // 1. Pastikan semua gambar sudah load
       await preloadImages();
 
-      // Tunggu font siap (penting untuk font custom di canvas)
+      // 2. Tunggu font siap (penting untuk font custom)
       await document.fonts.ready;
 
-      await new Promise((r) => setTimeout(r, 500)); // Tambah delay sedikit
+      // 3. Pastikan Render Stabled (Tidak patah, tidak hilang)
+      await waitForRenderStabilized(4);
 
-      // Paksa reflow
-      const height = stackRef.current.offsetHeight;
-      console.log("Capturing height:", height);
+      // 4. Tambah micro-delay opsional (super aman)
+      await new Promise((r) => setTimeout(r, 120));
 
       const dataUrl = await toPng(stackRef.current, {
         cacheBust: true,
-        pixelRatio: 3, // Kualitas tinggi
+        pixelRatio: 3,
         backgroundColor: "#F5F5F4",
       });
 
