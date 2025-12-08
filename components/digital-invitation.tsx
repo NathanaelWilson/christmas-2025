@@ -21,17 +21,29 @@ interface DigitalInvitationProps {
   onClose: () => void;
 }
 
-function waitForRenderStabilized(times = 3): Promise<void> {
-  return new Promise((resolve) => {
-    let count = 0;
+async function waitForDomFullyStable(element: HTMLElement, frames = 10) {
+  return new Promise<void>((resolve) => {
+    let lastRect = element.getBoundingClientRect();
+    let stableCount = 0;
 
-    function next() {
-      if (count >= times) return resolve();
-      count++;
-      requestAnimationFrame(() => requestAnimationFrame(next));
+    function check() {
+      const newRect = element.getBoundingClientRect();
+
+      const stable =
+        newRect.width === lastRect.width && newRect.height === lastRect.height;
+
+      if (stable) {
+        stableCount++;
+        if (stableCount >= frames) return resolve();
+      } else {
+        stableCount = 0; // reset jika berubah
+        lastRect = newRect;
+      }
+
+      requestAnimationFrame(check);
     }
 
-    next();
+    requestAnimationFrame(check);
   });
 }
 
@@ -65,18 +77,19 @@ export default function DigitalInvitation({
     try {
       setIsGenerating(true);
 
-      // 1. Pastikan semua gambar sudah load
+      // 1. Load semua gambar
       await preloadImages();
 
-      // 2. Tunggu font siap (penting untuk font custom)
+      // 2. Pastikan font load
       await document.fonts.ready;
 
-      // 3. Pastikan Render Stabled (Tidak patah, tidak hilang)
-      await waitForRenderStabilized(4);
+      // 3. Tunggu layout benar-benar stabil (paling penting)
+      await waitForDomFullyStable(stackRef.current, 12);
 
-      // 4. Tambah micro-delay opsional (super aman)
-      await new Promise((r) => setTimeout(r, 120));
+      // 4. Tambah buffer 100–150ms
+      await new Promise((r) => setTimeout(r, 150));
 
+      // 5. Generate PNG
       const dataUrl = await toPng(stackRef.current, {
         cacheBust: true,
         pixelRatio: 3,
@@ -85,7 +98,7 @@ export default function DigitalInvitation({
 
       const filename = `Invitation-${data?.fullName || "Guest"}.png`;
 
-      // Mobile share API
+      // Mobile share
       if (navigator.canShare) {
         const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], filename, { type: "image/png" });
