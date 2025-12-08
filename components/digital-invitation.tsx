@@ -174,47 +174,69 @@ export default function DigitalInvitation({
           className="flex flex-col gap-4 bg-stone-100 p-4 rounded-xl shadow-sm border border-stone-200"
         >
           {/* --- POSTCARD DESIGN --- */}
-          <div className="relative w-full shadow-none text-sepia-900 bg-[#f4f1ea]">
-            <div
-              className="absolute inset-0 bg-cover bg-center mix-blend-multiply opacity-90"
-              style={{
-                backgroundImage: `url(${images.paperTexture})`,
-              }}
+          {/* Container utama tanpa height fix, tinggi mengikuti gambar */}
+          <div className="relative w-full shadow-md rounded-none overflow-hidden bg-[#f4f1ea]">
+            {/* LAYER 1: GAMBAR BASE (Menentukan ukuran container) */}
+            <img
+              src={images.paperTexture}
+              alt="Postcard Background"
+              className="w-full h-auto block object-contain pointer-events-none"
+              crossOrigin="anonymous" // Penting untuk html-to-image
             />
-            <div className="relative h-full w-full p-6 sm:p-8 flex flex-row">
-              <div className="w-[60%] flex flex-col justify-center pr-4 space-y-6 ml-2">
+
+            {/* LAYER 2: KONTEN (Overlay Absolute) */}
+            {/* inset-0 membuat div ini menutupi persis area gambar */}
+            <div className="absolute inset-0 flex flex-row">
+              {/* --- KOLOM KIRI (58% Lebar) --- */}
+              {/* pl-[6%] pr-[2%] untuk menjaga jarak dari border kiri dan garis tengah */}
+              <div className="w-[60%] h-full flex flex-col justify-center pl-[8%] pr-[2%] space-y-[13%]">
+                {/* Judul */}
                 <h1
-                  className="text-[18px] sm:text-[2.8rem] leading-[0.9] text-red-900 transform -rotate-2"
+                  className="text-[5vw] sm:text-[2.5rem] leading-[0.9] text-red-900 transform -rotate-2 ml-1"
                   style={{ fontFamily: "var(--font-handwritten)" }}
                 >
                   “I'll be Home <br />{" "}
-                  <span className="pl-4">for Christmas”</span>
+                  <span className="pl-[10%]">for Christmas”</span>
                 </h1>
-                <div className="font-mono text-[10px] sm:text-[10px] text-sepia-900 space-y-1 tracking-tight opacity-90">
-                  <p className="">{eventDetails.date}</p>
-                  <p className="">{eventDetails.time}</p>
-                  <p className="">{eventDetails.location}</p>
+
+                {/* Detail Event */}
+                <div className="font-mono text-[2.2vw] sm:text-[11px] text-sepia-900 space-y-[1%] tracking-tight opacity-90 mt-[2%]">
+                  <p>{eventDetails.date}</p>
+                  <p>{eventDetails.time}</p>
+                  <p>{eventDetails.location}</p>
                 </div>
-                <p className="font-mono text-[11px] sm:text-[9px] leading-tight text-sepia-800 italic opacity-80 max-w-[90%]">
+
+                {/* Note Kecil */}
+                <p className="font-mono text-[2.2vw] sm:text-[9px] leading-tight text-sepia-800 italic opacity-80 max-w-[95%]">
                   Don’t forget your gift & wear the decided costumes!
                 </p>
               </div>
-              <div className="w-[45%] relative pl-5 flex flex-col border-l border-sepia-900/20">
-                <div className="mt-12 mb-3 pt-10">
-                  <p className="font-mono text-[10px] text-sepia-800 mb-1">
+
+              {/* --- KOLOM KANAN (42% Lebar) --- */}
+              {/* pl-[4%] agar teks tidak menabrak garis pemisah tengah */}
+              <div className="w-[40%] h-full relative pl-[4%] pr-[4%] flex flex-col">
+                {/* Bagian "To" (Nama Tamu) */}
+                {/* top-[38%] menempatkan teks di bawah area perangko */}
+                <div className="absolute top-[45%] left-[4%] right-[8%]">
+                  <p className="font-mono text-[2vw] sm:text-[10px] text-sepia-800 mb-[1%]">
                     to:
                   </p>
-                  <h2 className="font-mono text-[14px] sm:text-xl font-bold text-red-800 leading-tight break-words border-b border-dashed border-sepia-900/30 pb-1">
+                  <h2 className="font-mono text-[2.8vw] sm:text-[14px] font-bold text-red-800 leading-tight break-words border-b border-dashed border-sepia-900/30 pb-[1%]">
                     {(data?.fullName || "Dearest Friend")
                       .split(" ")
                       .slice(0, 2)
                       .join(" ")}
                   </h2>
                 </div>
-                <div className="pb-2 mt-auto">
-                  <p className="font-mono text-[10px] text-sepia-800">from:</p>
+
+                {/* Bagian "From" (Coach Jessie) */}
+                {/* bottom-[8%] menempatkan teks di area bawah */}
+                <div className="absolute bottom-[18%] left-[4%]">
+                  <p className="font-mono text-[2vw] sm:text-[10px] text-sepia-800">
+                    from:
+                  </p>
                   <p
-                    className="text-[15px] sm:text-2xl text-sepia-900 transform -rotate-2"
+                    className="text-[3.8vw] sm:text-[1.8rem] text-sepia-900 transform -rotate-2 mt-[1%]"
                     style={{ fontFamily: "var(--font-handwritten)" }}
                   >
                     Coach Jessie
@@ -226,7 +248,7 @@ export default function DigitalInvitation({
           {/* --- END POSTCARD --- */}
 
           {/* DRESSCODE */}
-          <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-none">
+          <div className="relative w-full overflow-hidden border bg-white shadow-none">
             <img
               src={images.dresscodeInfo}
               crossOrigin="anonymous"
@@ -237,7 +259,7 @@ export default function DigitalInvitation({
           </div>
 
           {/* GIFT */}
-          <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-none">
+          <div className="relative w-full overflow-hidden border bg-white shadow-none">
             <img
               src={images.giftInfo}
               crossOrigin="anonymous"

@@ -34,7 +34,7 @@ export default function ChristmasLoader() {
 
         {/* Teks Loading */}
         <div className="text-center space-y-2">
-          <h3 className="text-2xl font-serif font-bold tracking-wider text-amber-50">
+          <h3 className="text-1.5xl font-serif font-bold tracking-wider text-amber-50">
             Wrapping your Invitation...
           </h3>
           <p className="text-sm font-mono text-white/70 animate-pulse">
