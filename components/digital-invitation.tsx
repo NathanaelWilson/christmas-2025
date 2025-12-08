@@ -77,19 +77,16 @@ export default function DigitalInvitation({
 
     try {
       setIsGenerating(true);
-      setLoadingText("Preparing...");
+      setLoadingText("Preparing..."); // 1. Aset Loading
 
-      // 1. Aset Loading
       await preloadImages();
       await document.fonts.ready;
-      await waitForDomFullyStable(stackRef.current, 15);
+      await waitForDomFullyStable(stackRef.current, 15); // 2. Loop Retry Mechanism
 
-      // 2. Loop Retry Mechanism (Max 3x percobaan)
-      // Ini inti solusinya: Cek size, kalau kecil ulangi render.
       let validDataUrl = "";
       let attempts = 0;
       const maxAttempts = 3;
-      const minSizeByte = 300 * 1024; // Minimal 300KB (di bawah ini pasti gagal render)
+      const minSizeByte = 300 * 1024; // 300KB
 
       while (attempts < maxAttempts) {
         attempts++;
@@ -97,8 +94,6 @@ export default function DigitalInvitation({
           attempts > 1 ? `Retrying (${attempts})...` : "Rendering..."
         );
 
-        // Render attempt
-        // Gunakan skipAutoScale: true khusus untuk mobile
         const dataUrl = await toPng(stackRef.current, {
           cacheBust: true,
           pixelRatio: 3,
@@ -107,20 +102,15 @@ export default function DigitalInvitation({
           backgroundColor: "#F5F5F4",
         });
 
-        // Cek ukuran file hasil render
         const res = await fetch(dataUrl);
         const blob = await res.blob();
 
         console.log(`Attempt ${attempts} size:`, blob.size);
 
         if (blob.size > minSizeByte) {
-          // Sukses! File cukup besar (berarti gambar termuat)
           validDataUrl = dataUrl;
           break;
         }
-
-        // Jika gagal (file kecil), tunggu sebentar sebelum coba lagi
-        // Buffer ini memberi waktu browser mobile untuk "sadar" dan me-paint gambar
         await new Promise((r) => setTimeout(r, 500));
       }
 
@@ -128,28 +118,29 @@ export default function DigitalInvitation({
         throw new Error("Gagal merender gambar utuh setelah 3x percobaan.");
       }
 
-      const filename = `Invitation-${data?.fullName || "Guest"}.png`;
+      const filename = `Invitation-${data?.fullName || "Guest"}.png`; // --- PERUBAHAN DI SINI (DIRECT DOWNLOAD ONLY) ---
 
-      // 3. Share / Download
-      if (navigator.canShare) {
-        const blob = await (await fetch(validDataUrl)).blob();
-        const file = new File([blob], filename, { type: "image/png" });
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: "Christmas Invitation",
-            text: `Undangan untuk ${data?.fullName}`,
-          });
-          setIsGenerating(false);
-          setLoadingText("Saving...");
-          return;
-        }
-      }
+      // 1. Convert DataURL ke Blob agar lebih stabil saat didownload
+      const blob = await (await fetch(validDataUrl)).blob();
+      const url = URL.createObjectURL(blob);
 
+      // 2. Buat elemen anchor invisible
       const link = document.createElement("a");
-      link.href = validDataUrl;
+      link.href = url;
       link.download = filename;
+      link.style.display = "none";
+
+      // 3. Masukkan ke body (PENTING untuk Android/Firefox)
+      document.body.appendChild(link);
+
+      // 4. Klik otomatis
       link.click();
+
+      // 5. Bersihkan memori
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      // --- SELESAI PERUBAHAN ---
     } catch (err) {
       console.error("Error saving:", err);
       alert("Gagal menyimpan gambar. Silakan coba lagi.");
@@ -188,15 +179,15 @@ export default function DigitalInvitation({
               }}
             />
             <div className="relative h-full w-full p-6 sm:p-8 flex flex-row">
-              <div className="w-[60%] flex flex-col justify-center pr-4 space-y-6 ml-4">
+              <div className="w-[60%] flex flex-col justify-center pr-4 space-y-6 ml-2">
                 <h1
-                  className="text-[20px] sm:text-[2.8rem] leading-[0.9] text-red-900 transform -rotate-2"
+                  className="text-[18px] sm:text-[2.8rem] leading-[0.9] text-red-900 transform -rotate-2"
                   style={{ fontFamily: "var(--font-handwritten)" }}
                 >
                   “I'll be Home <br />{" "}
                   <span className="pl-4">for Christmas”</span>
                 </h1>
-                <div className="font-mono text-[11px] sm:text-[10px] text-sepia-900 space-y-1 tracking-tight opacity-90">
+                <div className="font-mono text-[10px] sm:text-[10px] text-sepia-900 space-y-1 tracking-tight opacity-90">
                   <p className="">{eventDetails.date}</p>
                   <p className="">{eventDetails.time}</p>
                   <p className="">{eventDetails.location}</p>
