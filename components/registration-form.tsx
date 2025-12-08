@@ -181,7 +181,7 @@ export default function RegistrationForm({
           {/* SLIDE 1 — Info */}
           <div className="w-full shrink-0 px-8 py-10 space-y-6">
             <h2 className="text-4xl font-bold text-center text-slate-900">
-              Join the Joy
+              Be Part of Our Christmas Celebration
             </h2>
             <p className="text-center text-sm text-stone-500">
               Fill your details below to continue
@@ -270,7 +270,7 @@ export default function RegistrationForm({
               onClick={goNext}
               className="w-full rounded-xl bg-emerald-600 text-white py-3 font-bold hover:bg-emerald-700 shadow"
             >
-              Next Slide
+              Continue to Payment
             </button>
           </div>
 

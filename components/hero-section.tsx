@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FrameOverlay from "./frame-overlay";
 
 export default function HeroSection() {
   const [timeLeft, setTimeLeft] = useState({
@@ -53,8 +54,18 @@ export default function HeroSection() {
   return (
     <section
       className="relative h-screen w-full overflow-hidden"
-      style={{ backgroundColor: "#7E0A06" }}
+      style={{
+        background: `
+      radial-gradient(
+        circle at center 40%,
+        #b9221dff 10%,
+        #7E0A06 55%,
+        #7E0A06 100%
+      )
+    `,
+      }}
     >
+      <FrameOverlay />
       {/* 🔥 Overlay WARNING untuk non-HP */}
       {/* {!isMobile && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-900 text-white text-center p-6">
@@ -126,7 +137,7 @@ export default function HeroSection() {
             border-2 border-emerald-400/30
           "
         >
-          Open Invitation
+          Register Now
           <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
 
