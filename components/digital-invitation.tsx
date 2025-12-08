@@ -4,7 +4,6 @@ import { useRef, useState, useCallback } from "react";
 import { X, Download, Loader2 } from "lucide-react";
 import { toPng } from "html-to-image";
 
-// Pastikan image stamp ditambahkan jika ada, kalau tidak saya pakai placeholder CSS
 const images = {
   giftInfo: "/Gift.webp",
   dresscodeInfo: "/Dresscode.webp",
@@ -21,6 +20,7 @@ interface DigitalInvitationProps {
   onClose: () => void;
 }
 
+// Helper untuk menunggu DOM stabil
 async function waitForDomFullyStable(element: HTMLElement, frames = 10) {
   return new Promise<void>((resolve) => {
     let lastRect = element.getBoundingClientRect();
@@ -28,7 +28,6 @@ async function waitForDomFullyStable(element: HTMLElement, frames = 10) {
 
     function check() {
       const newRect = element.getBoundingClientRect();
-
       const stable =
         newRect.width === lastRect.width && newRect.height === lastRect.height;
 
@@ -36,13 +35,11 @@ async function waitForDomFullyStable(element: HTMLElement, frames = 10) {
         stableCount++;
         if (stableCount >= frames) return resolve();
       } else {
-        stableCount = 0; // reset jika berubah
+        stableCount = 0;
         lastRect = newRect;
       }
-
       requestAnimationFrame(check);
     }
-
     requestAnimationFrame(check);
   });
 }
@@ -53,21 +50,26 @@ export default function DigitalInvitation({
 }: DigitalInvitationProps) {
   const stackRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loadingText, setLoadingText] = useState("Saving..."); // Tambahan state text
 
-  // Preload image manual
+  // 1. PERBAIKAN: Gunakan img.decode() untuk memaksa load ke GPU
   const preloadImages = useCallback(async () => {
     const urls = Object.values(images);
     await Promise.all(
-      urls.map(
-        (url) =>
-          new Promise<void>((resolve) => {
-            const img = new Image();
-            img.src = url;
-            img.crossOrigin = "anonymous";
+      urls.map(async (url) => {
+        const img = new Image();
+        img.src = url;
+        img.crossOrigin = "anonymous";
+        try {
+          await img.decode(); // Modern browser force decode
+        } catch {
+          // Fallback untuk browser lama
+          await new Promise<void>((resolve) => {
             img.onload = () => resolve();
-            img.onerror = () => resolve(); // Resolve even on error to prevent hanging
-          })
-      )
+            img.onerror = () => resolve();
+          });
+        }
+      })
     );
   }, []);
 
@@ -76,23 +78,40 @@ export default function DigitalInvitation({
 
     try {
       setIsGenerating(true);
+      setLoadingText("Preparing...");
 
-      // 1. Load semua gambar
+      // 1. Force Load Assets
       await preloadImages();
-
-      // 2. Pastikan font load
       await document.fonts.ready;
 
-      // 3. Tunggu layout benar-benar stabil (paling penting)
-      await waitForDomFullyStable(stackRef.current, 12);
+      // 2. Tunggu DOM Stabil
+      await waitForDomFullyStable(stackRef.current, 15);
 
-      // 4. Tambah buffer 100–150ms
-      await new Promise((r) => setTimeout(r, 150));
+      setLoadingText("Rendering...");
 
-      // 5. Generate PNG
+      // 3. WARM-UP RENDER (PENTING UNTUK MOBILE)
+      // Render sekali dengan resolusi rendah tanpa disimpan
+      // Ini "membangunkan" layout engine browser agar siap capture
+      try {
+        await toPng(stackRef.current, {
+          pixelRatio: 1,
+          cacheBust: true,
+          skipAutoScale: true,
+          backgroundColor: "#F5F5F4",
+        });
+      } catch (e) {
+        console.warn("Warmup pass failed, continuing...", e);
+      }
+
+      // Delay sedikit setelah pemanasan
+      await new Promise((r) => setTimeout(r, 100));
+
+      // 4. FINAL GENERATE
       const dataUrl = await toPng(stackRef.current, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 3, // Kualitas tinggi
+        quality: 1.0,
+        skipAutoScale: true, // Wajib true untuk iOS
         backgroundColor: "#F5F5F4",
       });
 
@@ -110,6 +129,7 @@ export default function DigitalInvitation({
             text: `Undangan untuk ${data?.fullName}`,
           });
           setIsGenerating(false);
+          setLoadingText("Saving...");
           return;
         }
       }
@@ -121,9 +141,10 @@ export default function DigitalInvitation({
       link.click();
     } catch (err) {
       console.error("Error saving:", err);
-      alert("Gagal menyimpan gambar.");
+      alert("Gagal menyimpan gambar. Silakan coba lagi.");
     } finally {
       setIsGenerating(false);
+      setLoadingText("Saving...");
     }
   }, [isGenerating, preloadImages, data?.fullName]);
 
@@ -252,7 +273,7 @@ export default function DigitalInvitation({
           >
             {isGenerating ? (
               <>
-                <Loader2 size={18} className="animate-spin" /> Saving...
+                <Loader2 size={18} className="animate-spin" /> {loadingText}
               </>
             ) : (
               <>
