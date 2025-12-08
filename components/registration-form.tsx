@@ -50,6 +50,15 @@ export default function RegistrationForm({
   ) => {
     const { name, value } = e.target;
 
+    // VALIDASI KHUSUS WHATSAPP (Hanya Angka)
+    if (name === "whatsappNumber") {
+      // Cek apakah input hanya angka (Regex)
+      // Jika user ketik huruf/simbol, tidak akan masuk ke state
+      if (value && !/^\d*$/.test(value)) {
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -207,6 +216,9 @@ export default function RegistrationForm({
                 WhatsApp Number
               </label>
               <input
+                type="tel" // 1. Mengubah semantik menjadi telepon
+                inputMode="numeric" // 2. Memberi tahu HP untuk buka keyboard angka
+                pattern="[0-9]*" // 3. Khusus iOS agar muncul numpad besar
                 name="whatsappNumber"
                 value={formData.whatsappNumber}
                 onChange={handleInputChange}

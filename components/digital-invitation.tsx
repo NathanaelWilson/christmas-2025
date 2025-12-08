@@ -20,7 +20,7 @@ interface DigitalInvitationProps {
   onClose: () => void;
 }
 
-// Helper untuk menunggu DOM stabil
+// Helper: Tunggu DOM stabil
 async function waitForDomFullyStable(element: HTMLElement, frames = 10) {
   return new Promise<void>((resolve) => {
     let lastRect = element.getBoundingClientRect();
@@ -50,9 +50,9 @@ export default function DigitalInvitation({
 }: DigitalInvitationProps) {
   const stackRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [loadingText, setLoadingText] = useState("Saving..."); // Tambahan state text
+  const [loadingText, setLoadingText] = useState("Saving...");
 
-  // 1. PERBAIKAN: Gunakan img.decode() untuk memaksa load ke GPU
+  // Force decode image agar masuk GPU
   const preloadImages = useCallback(async () => {
     const urls = Object.values(images);
     await Promise.all(
@@ -61,9 +61,8 @@ export default function DigitalInvitation({
         img.src = url;
         img.crossOrigin = "anonymous";
         try {
-          await img.decode(); // Modern browser force decode
+          await img.decode();
         } catch {
-          // Fallback untuk browser lama
           await new Promise<void>((resolve) => {
             img.onload = () => resolve();
             img.onerror = () => resolve();
@@ -80,48 +79,61 @@ export default function DigitalInvitation({
       setIsGenerating(true);
       setLoadingText("Preparing...");
 
-      // 1. Force Load Assets
+      // 1. Aset Loading
       await preloadImages();
       await document.fonts.ready;
-
-      // 2. Tunggu DOM Stabil
       await waitForDomFullyStable(stackRef.current, 15);
 
-      setLoadingText("Rendering...");
+      // 2. Loop Retry Mechanism (Max 3x percobaan)
+      // Ini inti solusinya: Cek size, kalau kecil ulangi render.
+      let validDataUrl = "";
+      let attempts = 0;
+      const maxAttempts = 3;
+      const minSizeByte = 300 * 1024; // Minimal 300KB (di bawah ini pasti gagal render)
 
-      // 3. WARM-UP RENDER (PENTING UNTUK MOBILE)
-      // Render sekali dengan resolusi rendah tanpa disimpan
-      // Ini "membangunkan" layout engine browser agar siap capture
-      try {
-        await toPng(stackRef.current, {
-          pixelRatio: 1,
+      while (attempts < maxAttempts) {
+        attempts++;
+        setLoadingText(
+          attempts > 1 ? `Retrying (${attempts})...` : "Rendering..."
+        );
+
+        // Render attempt
+        // Gunakan skipAutoScale: true khusus untuk mobile
+        const dataUrl = await toPng(stackRef.current, {
           cacheBust: true,
+          pixelRatio: 3,
+          quality: 1.0,
           skipAutoScale: true,
           backgroundColor: "#F5F5F4",
         });
-      } catch (e) {
-        console.warn("Warmup pass failed, continuing...", e);
+
+        // Cek ukuran file hasil render
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+
+        console.log(`Attempt ${attempts} size:`, blob.size);
+
+        if (blob.size > minSizeByte) {
+          // Sukses! File cukup besar (berarti gambar termuat)
+          validDataUrl = dataUrl;
+          break;
+        }
+
+        // Jika gagal (file kecil), tunggu sebentar sebelum coba lagi
+        // Buffer ini memberi waktu browser mobile untuk "sadar" dan me-paint gambar
+        await new Promise((r) => setTimeout(r, 500));
       }
 
-      // Delay sedikit setelah pemanasan
-      await new Promise((r) => setTimeout(r, 100));
-
-      // 4. FINAL GENERATE
-      const dataUrl = await toPng(stackRef.current, {
-        cacheBust: true,
-        pixelRatio: 3, // Kualitas tinggi
-        quality: 1.0,
-        skipAutoScale: true, // Wajib true untuk iOS
-        backgroundColor: "#F5F5F4",
-      });
+      if (!validDataUrl) {
+        throw new Error("Gagal merender gambar utuh setelah 3x percobaan.");
+      }
 
       const filename = `Invitation-${data?.fullName || "Guest"}.png`;
 
-      // Mobile share
+      // 3. Share / Download
       if (navigator.canShare) {
-        const blob = await (await fetch(dataUrl)).blob();
+        const blob = await (await fetch(validDataUrl)).blob();
         const file = new File([blob], filename, { type: "image/png" });
-
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
@@ -134,9 +146,8 @@ export default function DigitalInvitation({
         }
       }
 
-      // Fallback download
       const link = document.createElement("a");
-      link.href = dataUrl;
+      link.href = validDataUrl;
       link.download = filename;
       link.click();
     } catch (err) {
@@ -156,7 +167,6 @@ export default function DigitalInvitation({
 
   return (
     <div className="flex min-h-screen items-start justify-center px-4 py-8 bg-stone-100 overflow-y-auto font-sans">
-      {/* CSS untuk fix rendering di Safari & Chrome saat html-to-image */}
       <style>{`
         img {
           image-rendering: -webkit-optimize-contrast;
@@ -169,22 +179,16 @@ export default function DigitalInvitation({
           ref={stackRef}
           className="flex flex-col gap-4 bg-stone-100 p-4 rounded-xl shadow-sm border border-stone-200"
         >
-          {/* --- 1. POSTCARD DESIGN --- */}
-          {/* Aspect Ratio 3:2 standard postcard */}
+          {/* --- POSTCARD DESIGN --- */}
           <div className="relative w-full aspect-[3/2] overflow-hidden shadow-md text-sepia-900 bg-[#f4f1ea]">
-            {/* Background Texture */}
             <div
               className="absolute inset-0 bg-cover bg-center mix-blend-multiply opacity-90"
               style={{
                 backgroundImage: `url(${images.paperTexture})`,
               }}
             />
-
-            {/* Content Container */}
             <div className="relative h-full w-full p-6 sm:p-8 flex flex-row">
-              {/* --- LEFT COLUMN (55%) : Event Info --- */}
               <div className="w-[60%] flex flex-col justify-center pr-4 space-y-6 ml-4">
-                {/* Main Title (Handwritten) */}
                 <h1
                   className="text-[20px] sm:text-[2.8rem] leading-[0.9] text-red-900 transform -rotate-2"
                   style={{ fontFamily: "var(--font-handwritten)" }}
@@ -192,24 +196,16 @@ export default function DigitalInvitation({
                   “I'll be Home <br />{" "}
                   <span className="pl-4">for Christmas”</span>
                 </h1>
-
-                {/* Details (Monospace) */}
                 <div className="font-mono text-[11px] sm:text-[10px] text-sepia-900 space-y-1 tracking-tight opacity-90">
                   <p className="">{eventDetails.date}</p>
                   <p className="">{eventDetails.time}</p>
                   <p className="">{eventDetails.location}</p>
                 </div>
-
-                {/* Note */}
                 <p className="font-mono text-[11px] sm:text-[9px] leading-tight text-sepia-800 italic opacity-80 max-w-[90%]">
                   Don’t forget your gift & wear the decided costumes!
                 </p>
               </div>
-
-              {/* --- RIGHT COLUMN (45%) : Address & Stamp --- */}
-              {/* Border Left sebagai pemisah */}
               <div className="w-[45%] relative pl-5 flex flex-col border-l border-sepia-900/20">
-                {/* "To" Section (Middle) */}
                 <div className="mt-12 mb-3 pt-10">
                   <p className="font-mono text-[10px] text-sepia-800 mb-1">
                     to:
@@ -221,8 +217,6 @@ export default function DigitalInvitation({
                       .join(" ")}
                   </h2>
                 </div>
-
-                {/* "From" Section (Bottom) */}
                 <div className="pb-2 mt-auto">
                   <p className="font-mono text-[10px] text-sepia-800">from:</p>
                   <p
@@ -237,7 +231,7 @@ export default function DigitalInvitation({
           </div>
           {/* --- END POSTCARD --- */}
 
-          {/* 2. DRESSCODE */}
+          {/* DRESSCODE */}
           <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-sm">
             <img
               src={images.dresscodeInfo}
@@ -248,7 +242,7 @@ export default function DigitalInvitation({
             />
           </div>
 
-          {/* 3. GIFT */}
+          {/* GIFT */}
           <div className="relative w-full overflow-hidden rounded-lg border bg-white shadow-sm">
             <img
               src={images.giftInfo}
