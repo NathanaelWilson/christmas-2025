@@ -1,7 +1,20 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ChevronDown, Loader2, Upload, ArrowLeft } from "lucide-react";
+import {
+  ChevronDown,
+  Loader2,
+  Upload,
+  ArrowLeft,
+  Clipboard,
+  Check,
+  Paperclip,
+} from "lucide-react";
+
+// --- KONSTANTA & PATH ---
+// Pastikan file "bg-form.webp" ada di dalam folder "public" project Anda
+const FORM_TEXTURE_URL = "/background-form.webp";
+const ACCOUNT_NUMBER = "0881995912";
 
 interface FormData {
   fullName: string;
@@ -27,6 +40,7 @@ export default function RegistrationForm({
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const cgOptions = [
@@ -52,8 +66,6 @@ export default function RegistrationForm({
 
     // VALIDASI KHUSUS WHATSAPP (Hanya Angka)
     if (name === "whatsappNumber") {
-      // Cek apakah input hanya angka (Regex)
-      // Jika user ketik huruf/simbol, tidak akan masuk ke state
       if (value && !/^\d*$/.test(value)) {
         return;
       }
@@ -87,6 +99,13 @@ export default function RegistrationForm({
     setFormData((prev) => ({ ...prev, proofFile: file }));
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(ACCOUNT_NUMBER).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   const goNext = () => {
     setError("");
 
@@ -102,6 +121,7 @@ export default function RegistrationForm({
     setStep(2);
   };
 
+  // --- LOGIKA INTEGRASI SUPABASE ---
   const handleReserve = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -122,24 +142,21 @@ export default function RegistrationForm({
         dataToSend.append("proofFile", formData.proofFile);
       }
 
-      console.log("Mengirim data ke /api/register..."); // Debug log
+      console.log("Mengirim data ke /api/register...");
 
       const response = await fetch("/api/register", {
         method: "POST",
         body: dataToSend,
       });
 
-      // --- PERBAIKAN PENTING DI SINI ---
-      // Ambil respons sebagai text dulu untuk pengecekan
+      // Validasi Response
       const responseText = await response.text();
-      console.log("Response dari server:", responseText); // Cek Console browser (F12)
+      console.log("Response dari server:", responseText);
 
-      // Coba parse ke JSON
       let result;
       try {
         result = JSON.parse(responseText);
       } catch (e) {
-        // Jika gagal parse, berarti server kirim HTML (biasanya Error page)
         throw new Error(
           `Server Error: Tidak merespons dengan JSON. Kemungkinan URL salah atau Server Crash. Isi: ${responseText.slice(
             0,
@@ -155,7 +172,6 @@ export default function RegistrationForm({
       if (onSubmit) onSubmit(formData);
     } catch (err: any) {
       console.error("Error Detail:", err);
-      // Tampilkan error yang lebih jelas ke user
       setError(err.message || "Terjadi kesalahan sistem.");
     } finally {
       setLoading(false);
@@ -163,220 +179,308 @@ export default function RegistrationForm({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto mt-10 px-4">
-      {/* Progress dots */}
-      <div className="flex justify-center gap-3 mb-5">
-        <div
-          className={`h-3 w-3 rounded-full border border-amber-200 ${
-            step === 1 ? "bg-amber-50" : "bg-transparent"
-          }`}
-        />
-        <div
-          className={`h-3 w-3 rounded-full border border-amber-200 ${
-            step === 2 ? "bg-amber-50" : "bg-transparent"
-          }`}
-        />
-      </div>
+    <div className="flex min-h-screen w-full items-center justify-center p-4 bg-[#7E0A06] font-mono">
+      {/* Main Card dengan Background Texture */}
+      <div
+        className="relative w-full max-w-md shadow-2xl border border-stone-800/20 overflow-hidden bg-cover bg-center rounded-sm"
+        // Update di sini: Menggunakan tanda kutip tunggal di dalam url() agar lebih aman
+        style={{ backgroundImage: `url('${FORM_TEXTURE_URL}')` }}
+      >
+        <div className="absolute inset-0 bg-[#F9F7F2]/30" />
 
-      {/* Card container */}
-      <div className="relative overflow-hidden rounded-3xl border-4 border-emerald-600 shadow-xl bg-white">
-        <div className="h-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
-
-        {/* Sliding wrapper */}
-        <div
-          className="flex transition-transform duration-500 ease-in-out"
-          style={{ transform: `translateX(${step === 1 ? "0%" : "-100%"})` }}
-        >
-          {/* SLIDE 1 — Info */}
-          <div className="w-full shrink-0 px-8 py-10 space-y-6">
-            <h2 className="text-4xl font-bold text-center text-slate-900">
-              Be Part of Our Christmas Celebration
-            </h2>
-            <p className="text-center text-sm text-stone-500">
-              Fill your details below to continue
-            </p>
-
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Full Name
-              </label>
-              <input
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3"
-                placeholder="Jessie Ellanda"
-              />
-            </div>
-
-            {/* WhatsApp */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                WhatsApp Number
-              </label>
-              <input
-                type="tel" // 1. Mengubah semantik menjadi telepon
-                inputMode="numeric" // 2. Memberi tahu HP untuk buka keyboard angka
-                pattern="[0-9]*" // 3. Khusus iOS agar muncul numpad besar
-                name="whatsappNumber"
-                value={formData.whatsappNumber}
-                onChange={handleInputChange}
-                className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3"
-                placeholder="08xxxxxxxxxx"
-              />
-            </div>
-
-            {/* In CG */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Are you in a Connect Group (CG)?
-              </label>
-              <div className="relative">
-                <select
-                  name="inConnectGroup"
-                  value={formData.inConnectGroup}
-                  onChange={handleInputChange}
-                  className="w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 appearance-none"
-                >
-                  <option value="">Select an option</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-700" />
-              </div>
-            </div>
-
-            {/* CG List */}
-            {formData.inConnectGroup === "Yes" && (
-              <div className="animate-fadeIn">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  Select your CG
-                </label>
-                <div className="relative">
-                  <select
-                    name="connectGroup"
-                    value={formData.connectGroup}
-                    onChange={handleInputChange}
-                    className="w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 py-3 appearance-none"
-                  >
-                    <option value="">Select your CG</option>
-                    {cgOptions.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-700" />
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <button
-              onClick={goNext}
-              className="w-full rounded-xl bg-emerald-600 text-white py-3 font-bold hover:bg-emerald-700 shadow"
-            >
-              Continue to Payment
-            </button>
+        <div className="relative">
+          {/* Progress Dots */}
+          <div className="flex justify-center gap-3 pt-6 mb-3">
+            <div
+              className={`h-2 w-2 rounded-full border border-stone-600 ${
+                step >= 1 ? "bg-stone-800" : "bg-transparent"
+              }`}
+            />
+            <div
+              className={`h-2 w-2 rounded-full border border-stone-600 ${
+                step >= 2 ? "bg-stone-800" : "bg-transparent"
+              }`}
+            />
           </div>
 
-          {/* SLIDE 2 — Payment */}
-          <div className="w-full shrink-0 px-8 py-10 space-y-6">
-            <button
-              onClick={() => setStep(1)}
-              className="flex items-center gap-2 text-sm text-emerald-700 mb-2"
-            >
-              <ArrowLeft size={18} /> Back
-            </button>
-
-            <h2 className="text-3xl font-bold text-center text-slate-900">
-              Payment Details
-            </h2>
-            <p className="text-center text-sm text-stone-500">
-              Transfer <strong>Rp 50.000</strong> to complete your reservation
+          {/* Header Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-[17px] font-bold text-stone-800 tracking-tighter uppercase px-4">
+              {step === 1
+                ? "PLEASE FILL IN YOUR INFORMATION"
+                : "PAYMENT DETAILS"}
+            </h1>
+            <p className="text-[10px] text-stone-500 uppercase tracking-widest">
+              CHRISTMAS CELEBRATION
             </p>
+          </div>
 
-            {/* Bank Card */}
-            <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 shadow-sm">
-              <p className="text-sm text-slate-700">
-                <span className="font-semibold">Bank:</span> BCA
-              </p>
-              <p className="text-sm text-slate-700">
-                <span className="font-semibold">No Rekening:</span> 0881995912
-              </p>
-              <p className="text-sm text-slate-700">
-                <span className="font-semibold">A.n:</span> Kimberly Joseph
-                Wirawan
-              </p>
-            </div>
+          {/* SLIDING WRAPPER */}
+          <div className="relative overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                width: "200%",
+                transform: `translateX(${step === 1 ? "0%" : "-50%"})`,
+              }}
+            >
+              {/* SLIDE 1: PERSONAL INFO */}
+              <div className="w-1/2 shrink-0 px-8 pb-8 space-y-6">
+                <div className="space-y-5">
+                  {/* Name Input */}
+                  <div className="group">
+                    <label className="block text-[10px] uppercase tracking-widest text-stone-500 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className="w-full bg-transparent border-b border-stone-400 py-1 text-sm text-stone-800 placeholder-stone-400/50 focus:outline-none focus:border-[#7E0A06] transition-colors"
+                      placeholder="YOUR NAME"
+                      autoComplete="off"
+                    />
+                  </div>
 
-            {/* Upload */}
-            <form onSubmit={handleReserve} className="space-y-4">
-              <label className="block text-sm font-semibold">
-                Upload Screenshot Transfer
-              </label>
+                  {/* WA Input */}
+                  <div className="group">
+                    <label className="block text-[10px] uppercase tracking-widest text-stone-500 mb-1">
+                      WhatsApp No.
+                    </label>
+                    <input
+                      name="whatsappNumber"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={formData.whatsappNumber}
+                      onChange={handleInputChange}
+                      className="w-full bg-transparent border-b border-stone-400 py-1 text-sm text-stone-800 placeholder-stone-400/50 focus:outline-none focus:border-[#7E0A06] transition-colors"
+                      placeholder="08..."
+                      autoComplete="off"
+                    />
+                  </div>
 
-              <div className="flex items-center gap-3">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFilePicked}
-                  className="hidden"
-                />
+                  {/* CG Status */}
+                  <div className="group">
+                    <label className="block text-[10px] uppercase tracking-widest text-stone-500 mb-1">
+                      Are you in a CG?
+                    </label>
+                    <div className="relative">
+                      <select
+                        name="inConnectGroup"
+                        value={formData.inConnectGroup}
+                        onChange={handleInputChange}
+                        className="w-full bg-transparent border-b border-stone-400 py-1 text-sm text-stone-800 focus:outline-none focus:border-[#7E0A06] appearance-none rounded-none"
+                      >
+                        <option value="" className="text-stone-300">
+                          SELECT OPTION
+                        </option>
+                        <option value="Yes">YES</option>
+                        <option value="No">NO</option>
+                      </select>
+                      <ChevronDown
+                        size={14}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-500 pointer-events-none"
+                      />
+                    </div>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-slate-300"
-                >
-                  <Upload size={18} /> Choose File
-                </button>
-
-                <div className="text-sm text-stone-600">
-                  {formData.proofFile ? (
-                    `${formData.proofFile.name} • ${readableBytes(
-                      formData.proofFile.size
-                    )}`
-                  ) : (
-                    <span className="text-stone-400">No file chosen</span>
+                  {/* CG Selection */}
+                  {formData.inConnectGroup === "Yes" && (
+                    <div className="group pt-2 animate-fadeIn">
+                      <label className="block text-[10px] uppercase tracking-widest text-[#7E0A06] mb-1">
+                        Select Connect Group
+                      </label>
+                      <div className="relative">
+                        <select
+                          name="connectGroup"
+                          value={formData.connectGroup}
+                          onChange={handleInputChange}
+                          className="w-full bg-[#7E0A06]/5 border-b border-[#7E0A06] py-2 px-2 text-[11px] text-[#7E0A06] focus:outline-none appearance-none font-bold uppercase"
+                        >
+                          <option value="">SELECT YOUR CG</option>
+                          {cgOptions.map((o) => (
+                            <option key={o} value={o}>
+                              {o}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown
+                          size={14}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#7E0A06] pointer-events-none"
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
+
+                {error && (
+                  <p className="text-[10px] text-red-600 font-bold tracking-wide border border-red-200 bg-red-50 p-2 text-center">
+                    ⚠️ {error}
+                  </p>
+                )}
+
+                <div className="pt-6 mt-4">
+                  <p className="text-center text-[9px] uppercase tracking-widest text-stone-600 mb-6 leading-relaxed px-2">
+                    THERE WILL BE A CHARGE OF{" "}
+                    <span className="font-bold text-stone-800">
+                      IDR 50.000,00
+                    </span>{" "}
+                    FOR THE EVENT, INCLUDING DELICIOUS MEALS, LIGHT BITES, AND
+                    REFRESHMENTS.
+                  </p>
+
+                  <button
+                    onClick={goNext}
+                    className="w-full border border-stone-800 bg-transparent text-stone-800 py-3 text-xs font-bold tracking-[0.2em] uppercase hover:bg-stone-800 hover:text-[#F9F7F2] transition-all active:scale-[0.98]"
+                  >
+                    Proceed
+                  </button>
+                </div>
               </div>
 
-              {/* Preview */}
-              {formData.proofFile && (
-                <img
-                  src={URL.createObjectURL(formData.proofFile)}
-                  className="w-28 h-28 rounded-xl object-cover border border-slate-200"
-                />
-              )}
+              {/* SLIDE 2: PAYMENT & UPLOAD */}
+              <div className="w-1/2 shrink-0 px-8 pb-8 space-y-6">
+                <button
+                  onClick={() => setStep(1)}
+                  className="flex items-center gap-2 text-[10px] text-stone-500 hover:text-stone-800 transition-colors uppercase tracking-widest mb-4"
+                >
+                  <ArrowLeft size={12} /> Back
+                </button>
 
-              {error && (
-                <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
-                  {error}
+                <div className="bg-white/50 border border-stone-300 p-4 space-y-3 relative">
+                  <div className="flex justify-between border-b border-dashed border-stone-300 pb-2 z-10 relative">
+                    <span className="text-[10px] text-stone-500 uppercase">
+                      Bank
+                    </span>
+                    <span className="text-xs font-bold text-stone-800">
+                      BCA
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center border-b border-dashed border-stone-300 pb-2 z-10 relative">
+                    <span className="text-[10px] text-stone-500 uppercase">
+                      Account
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-stone-800 tracking-wider">
+                        {ACCOUNT_NUMBER}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopy}
+                        className={`p-1 transition-colors ${
+                          copied
+                            ? "text-green-600"
+                            : "text-stone-500 hover:text-[#7E0A06]"
+                        }`}
+                        title="Copy Account Number"
+                      >
+                        {copied ? <Check size={14} /> : <Clipboard size={14} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between border-b border-dashed border-stone-300 pb-2 z-10 relative">
+                    <span className="text-[10px] text-stone-500 uppercase mb-1">
+                      Beneficiary
+                    </span>
+                    <span className="text-xs font-bold text-stone-800">
+                      KIMBERLY JOSEPH WIRAWAN
+                    </span>
+                  </div>
+
+                  {/* TOTAL AMOUNT SECTION (DITAMBAHKAN SESUAI REQUEST) */}
+                  <div className="flex justify-between border-b border-dashed border-stone-300 pb-2 z-10 relative">
+                    <span className="text-[10px] text-stone-500 uppercase">
+                      Total Amount
+                    </span>
+                    <span className="text-xs font-bold text-stone-800">
+                      IDR 50.000,00
+                    </span>
+                  </div>
+
+                  {/* NEWS SECTION */}
+                  <div className="bg-stone-100 p-2 border border-stone-200">
+                    <span className="block text-[9px] text-stone-400 uppercase tracking-widest mb-1">
+                      News / Berita Transfer:
+                    </span>
+                    <p className="text-[10px] font-bold text-stone-700 break-all">
+                      HFC {formData.fullName.split(" ")[0].toUpperCase()}{" "}
+                      {formData.connectGroup
+                        ? formData.connectGroup.split(" - ")[0]
+                        : "GUEST"}
+                    </p>
+                  </div>
                 </div>
-              )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-emerald-600 text-white py-3 font-bold hover:bg-emerald-700 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  "Reserve My Spot"
-                )}
-              </button>
-            </form>
+                <form onSubmit={handleReserve} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] uppercase tracking-widest text-stone-500">
+                      Upload Receipt
+                    </label>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFilePicked}
+                      className="hidden"
+                    />
+
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`
+                                        border border-dashed p-4 text-center cursor-pointer transition-all
+                                        ${
+                                          formData.proofFile
+                                            ? "border-[#7E0A06] bg-[#7E0A06]/5"
+                                            : "border-stone-400 hover:bg-stone-100"
+                                        }
+                                    `}
+                    >
+                      {formData.proofFile ? (
+                        <div className="flex items-center justify-center gap-2 text-[#7E0A06]">
+                          <Paperclip size={14} />
+                          <span className="text-[10px] font-bold truncate max-w-[150px]">
+                            {formData.proofFile.name}
+                            <span className="text-stone-500 font-normal ml-1">
+                              ({readableBytes(formData.proofFile.size)})
+                            </span>
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-stone-400">
+                          <Upload size={16} />
+                          <span className="text-[10px]">TAP TO UPLOAD</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {error && (
+                    <p className="text-[10px] text-red-600 font-bold tracking-wide text-center">
+                      ⚠️ {error}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#7E0A06] text-white py-3 text-xs font-bold tracking-[0.2em] uppercase hover:bg-[#600603] transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                  >
+                    {loading ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      "CONFIRM RESERVATION"
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
+
+          <div className="bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#31684e_5px,#31684e_10px)] h-3 w-full border-t border-stone-200" />
         </div>
       </div>
     </div>
