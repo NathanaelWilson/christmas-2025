@@ -13,7 +13,7 @@ export default function HeroSection() {
   // const isMobile = typeof window !== "undefined" && window.innerWidth <= 480;
 
   useEffect(() => {
-    const targetDate = new Date("2025-12-19T19:00:00+07:00").getTime();
+    const targetDate = new Date("2025-12-19T18:30:00+07:00").getTime();
 
     const interval = setInterval(() => {
       const now = new Date().getTime();
