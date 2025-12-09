@@ -126,24 +126,36 @@ export default function HeroSection() {
         />
 
         {/* TOMBOL */}
-        <button
-          onClick={scrollToForm}
-          className="
-            group relative px-8 py-3 rounded-full 
-            bg-emerald-600 text-white font-bold text-lg
-            shadow-[0_0_20px_rgba(5,150,105,0.5)]
-            hover:bg-emerald-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(5,150,105,0.7)]
-            transition-all duration-300 ease-out
-            border-2 border-emerald-400/30
-          "
-        >
-          Register Now
-          <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </button>
+        <div className="flex justify-center mt-6">
+          <div className="w-[180px]">
+            {" "}
+            {/* samakan lebar countdown */}
+            <button
+              onClick={scrollToForm}
+              className="
+        w-full 
+        bg-emerald-600 text-white 
+        py-3 
+        text-sm font-bold font-mono
+        tracking-[0.15em] uppercase
+        hover:bg-emerald-500 
+        transition-all active:scale-[0.98]
+        disabled:opacity-70 disabled:cursor-not-allowed
+        flex justify-center items-center gap-2
+        rounded-[4px]
+        shadow-[0_0_20px_rgba(5,150,105,0.5)]
+        hover:shadow-[0_0_30px_rgba(5,150,105,0.7)]
+        border border-emerald-400/30
+      "
+            >
+              Register Now
+            </button>
+          </div>
+        </div>
 
         {/* INFO WAKTU */}
         <div className="mt-6 text-white/90 font-medium text-center drop-shadow-md">
-          <p className="text-lg font-semibold tracking-wide">
+          <p className="text-lg font-semibold tracking-wide font-mono">
             December 19, 2025 • 6:30 PM
           </p>
 
