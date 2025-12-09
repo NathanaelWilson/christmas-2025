@@ -175,7 +175,7 @@ export default function DigitalInvitation({
         >
           {/* --- POSTCARD DESIGN --- */}
           {/* Container utama tanpa height fix, tinggi mengikuti gambar */}
-          <div className="relative w-full shadow-md rounded-none overflow-hidden bg-[#f4f1ea]">
+          <div className="relative w-full shadow-none rounded-none overflow-hidden bg-[#f4f1ea]">
             {/* LAYER 1: GAMBAR BASE (Menentukan ukuran container) */}
             <img
               src={images.paperTexture}

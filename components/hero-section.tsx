@@ -133,20 +133,20 @@ export default function HeroSection() {
             <button
               onClick={scrollToForm}
               className="
-        w-full 
-        bg-emerald-600 text-white 
-        py-3 
-        text-sm font-bold font-mono
-        tracking-[0.15em] uppercase
-        hover:bg-emerald-500 
-        transition-all active:scale-[0.98]
-        disabled:opacity-70 disabled:cursor-not-allowed
-        flex justify-center items-center gap-2
-        rounded-[4px]
-        shadow-[0_0_20px_rgba(5,150,105,0.5)]
-        hover:shadow-[0_0_30px_rgba(5,150,105,0.7)]
-        border border-emerald-400/30
-      "
+                w-full 
+                bg-emerald-600 text-white 
+                py-3 
+                text-sm font-bold font-mono
+                tracking-[0.15em] uppercase
+                hover:bg-emerald-500 
+                transition-all active:scale-[0.98]
+                disabled:opacity-70 disabled:cursor-not-allowed
+                flex justify-center items-center gap-2
+                rounded-[4px]
+                shadow-[0_0_20px_rgba(5,150,105,0.5)]
+                hover:shadow-[0_0_30px_rgba(5,150,105,0.7)]
+                border border-emerald-400/30
+              "
             >
               Register Now
             </button>
